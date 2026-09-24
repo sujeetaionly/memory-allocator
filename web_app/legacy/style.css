@@ -1,0 +1,599 @@
+/* LearnCPP.com Digital Twin System (Exact #d6d6d6 Backdrop & Subdued Visual Hierarchy) */
+
+:root {
+    /* Exact #d6d6d6 Page Backdrop */
+    --lcpp-bg-backdrop: #d6d6d6;       /* Exact #d6d6d6 grey backdrop */
+    --lcpp-card-bg: #ffffff;           /* Crisp white article sheet */
+    --lcpp-header-bg: #ffffff;         /* Topbar background */
+    --lcpp-border-header: #c0c0c0;     /* Header border line */
+    
+    --lcpp-brand-navy: #2b4c7e;       /* LearnCPP brand logo blue */
+    --lcpp-nav-link: #2b4c7e;         /* Nav menu links */
+    --lcpp-nav-hover: #0056b3;        /* Nav hover blue */
+    
+    --lcpp-text-title: #111111;       /* Heading text */
+    --lcpp-text-body: #222222;        /* High-legibility body text */
+    --lcpp-text-meta: #6c757d;        /* Metadata text */
+    
+    --lcpp-code-pill-bg: #f1f3f5;     /* Inline code pill background */
+    --lcpp-code-pill-border: #ced4da; /* Inline code pill border */
+    --lcpp-code-pill-text: #212529;   /* Inline code pill text */
+    
+    --lcpp-aside-bg: #f8f9fa;         /* Callout box background */
+    --lcpp-aside-border: #dcdcdc;     /* Callout box border */
+    
+    /* Code Editor Tokens (LearnCPP Syntax Highlighting - Exact Match) */
+    --code-box-bg: #ffffff;
+    --code-box-border: #e0e4e8;
+    --code-row-alt: #f4f6f8;           /* Soft zebra striping grey matching screenshot */
+    --code-ln-color: #a0aec0;          /* Soft light grey line numbers */
+    
+    --tok-keyword: #0056b3;           /* Struct, int, void, const, return */
+    --tok-type: #008080;              /* Date, Node, std::byte, size_t */
+    --tok-number: #000000;            /* Numbers */
+    --tok-string: #b22222;            /* Includes, Strings */
+    --tok-comment: #228b22;           /* Subtle Forest Green Comments */
+    
+    /* EXACT LEARNCPP SYSTEM FONT STACK */
+    --font-ui: 'Open Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-prose: 'Open Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-mono: Consolas, 'Courier New', monospace;
+}
+
+/* LearnCPP Dark Mode */
+[data-theme="dark"] {
+    --lcpp-bg-backdrop: #121417;
+    --lcpp-card-bg: #1a1d21;
+    --lcpp-header-bg: #1a1d21;
+    --lcpp-border-header: #2b3036;
+    
+    --lcpp-brand-navy: #4ea8de;
+    --lcpp-nav-link: #90e0ef;
+    --lcpp-nav-hover: #48cae4;
+    
+    --lcpp-text-title: #f8f9fa;
+    --lcpp-text-body: #d1d5db;
+    --lcpp-text-meta: #9ca3af;
+    
+    --lcpp-code-pill-bg: #2b3036;
+    --lcpp-code-pill-border: #3d4656;
+    --lcpp-code-pill-text: #e9ecef;
+    
+    --lcpp-aside-bg: #212529;
+    --lcpp-aside-border: #343a40;
+    
+    --code-box-bg: #14171e;
+    --code-box-border: #2d3340;
+    --code-row-alt: #1a1e27;
+    --code-ln-color: #6c757d;
+    
+    --tok-keyword: #569cd6;
+    --tok-type: #4ec9b0;
+    --tok-number: #b5cea8;
+    --tok-string: #ce9178;
+    --tok-comment: #6a9955;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    background-color: var(--lcpp-bg-backdrop);
+    color: var(--lcpp-text-body);
+    font-family: var(--font-ui);
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* SLIM TOPBAR (38px HEIGHT) — EXTREME LEFT & EXTREME RIGHT ALIGNMENT */
+.lcpp-header {
+    background: var(--lcpp-header-bg);
+    border-bottom: 1px solid var(--lcpp-border-header);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.lcpp-header-inner {
+    width: 100%;
+    max-width: 100%;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.lcpp-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.lcpp-logo-box {
+    background: var(--lcpp-brand-navy);
+    color: #ffffff;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 3px;
+    letter-spacing: 0.5px;
+}
+
+.lcpp-brand-text {
+    display: flex;
+    align-items: baseline;
+}
+
+.lcpp-brand-title {
+    font-family: var(--font-ui);
+    font-weight: 800;
+    font-size: 14px;
+    color: var(--lcpp-brand-navy);
+    letter-spacing: 0.5px;
+}
+
+.lcpp-nav {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.nav-link {
+    background: transparent;
+    border: none;
+    font-family: var(--font-ui);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--lcpp-nav-link);
+    text-decoration: none;
+    cursor: pointer;
+    padding: 3px 6px;
+    border-radius: 3px;
+    transition: all 0.15s ease;
+}
+
+.nav-link:hover, .nav-link.active {
+    color: var(--lcpp-nav-hover);
+    background: rgba(43, 76, 126, 0.08);
+}
+
+.nav-item-dropdown {
+    position: relative;
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: var(--lcpp-card-bg);
+    border: 1px solid var(--lcpp-border-header);
+    border-radius: 4px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    min-width: 240px;
+    padding: 4px 0;
+    z-index: 200;
+}
+
+.nav-item-dropdown:hover .dropdown-menu {
+    display: block;
+}
+
+.dropdown-item {
+    display: block;
+    padding: 6px 14px;
+    font-size: 11.5px;
+    color: var(--lcpp-text-body);
+    text-decoration: none;
+    transition: background 0.15s ease;
+    cursor: pointer;
+}
+
+.dropdown-item:hover, .dropdown-item.active {
+    background: rgba(43, 76, 126, 0.08);
+    color: var(--lcpp-nav-hover);
+}
+
+.theme-toggle-btn {
+    background: var(--lcpp-code-pill-bg);
+    border: 1px solid var(--lcpp-code-pill-border);
+    color: var(--lcpp-text-body);
+    padding: 2px 6px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.theme-toggle-btn:hover {
+    background: var(--lcpp-border-header);
+}
+
+/* MAIN #d6d6d6 BACKDROP & ELEVATED PAGE SHEET CARD */
+.lcpp-backdrop {
+    flex: 1;
+    padding: 28px 16px 56px;
+    display: flex;
+    justify-content: center;
+    background-color: var(--lcpp-bg-backdrop); /* #d6d6d6 */
+}
+
+.lcpp-article-sheet {
+    background: var(--lcpp-card-bg);
+    border-radius: 4px;
+    border: 1px solid #c8c8c8;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.06);
+    max-width: 860px;
+    width: 100%;
+    padding: 40px 48px;
+}
+
+@media (max-width: 640px) {
+    .lcpp-article-sheet {
+        padding: 24px 20px;
+    }
+}
+
+/* ARTICLE HEADER */
+.article-header {
+    border-bottom: 1px solid #e9ecef;
+    padding-bottom: 14px;
+    margin-bottom: 24px;
+}
+
+.article-title {
+    font-family: var(--font-ui);
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--lcpp-text-title);
+    line-height: 1.25;
+    margin-bottom: 8px;
+}
+
+/* SECTION DIVIDERS & HEADINGS */
+.lesson-section {
+    margin-top: 36px;
+    margin-bottom: 32px;
+}
+
+.lesson-section h2 {
+    font-family: var(--font-ui);
+    font-size: 18.5px;
+    font-weight: 700;
+    color: var(--lcpp-text-title);
+    border-top: 1px solid #e9ecef;
+    padding-top: 24px;
+    margin-top: 36px;
+    margin-bottom: 14px;
+}
+
+.prose {
+    font-family: var(--font-prose);
+    font-size: 15px;
+    color: var(--lcpp-text-body);
+    line-height: 1.6;
+    margin-bottom: 16px;
+}
+
+/* INLINE CODE PILLS */
+.code-pill {
+    background: var(--lcpp-code-pill-bg);
+    border: 1px solid var(--lcpp-code-pill-border);
+    color: var(--lcpp-code-pill-text);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 1px 5px;
+    border-radius: 3px;
+    white-space: nowrap;
+}
+
+/* "AS AN ASIDE..." CALLOUT CARD */
+.aside-card {
+    background: var(--lcpp-aside-bg);
+    border: 1px solid var(--lcpp-aside-border);
+    border-left: 4px solid var(--lcpp-brand-navy);
+    border-radius: 4px;
+    padding: 16px 20px;
+    margin: 24px 0;
+}
+
+.aside-title {
+    font-family: var(--font-ui);
+    font-size: 14.5px;
+    font-weight: 700;
+    color: var(--lcpp-text-title);
+    margin-bottom: 6px;
+}
+
+.aside-body {
+    font-family: var(--font-prose);
+    font-size: 15px;
+    color: var(--lcpp-text-body);
+    line-height: 1.6;
+}
+
+/* Formula Aside */
+.formula-aside {
+    background: #f8f9fa;
+    border-left-color: var(--tok-keyword);
+}
+
+.formula-text {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--tok-keyword);
+}
+
+/* CODE BLOCK CONTAINERS (SUBDUED VISUAL HIERARCHY MATCHING LEARNCPP) */
+.code-block-wrapper {
+    background: var(--code-box-bg);
+    border: 1px solid var(--code-box-border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 20px 0;
+}
+
+.code-block-header {
+    background: #f8f9fa;
+    border-bottom: 1px solid var(--code-box-border);
+    padding: 3px 10px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: #6c757d; /* SUBDUED LIGHT GREY TEXT (NOT BOLD BLUE!) */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.cb-filename {
+    font-weight: 400; /* REGULAR WEIGHT FOR CLEAN EDITORIAL LOOK */
+    color: #555555;   /* SUBDUED DARK NEUTRAL GREY */
+}
+
+.lcpp-code-box {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.35;
+    overflow-x: auto;
+    background: #ffffff;
+}
+
+.code-row {
+    border-bottom: 1px solid transparent;
+}
+
+.code-row:nth-child(even) {
+    background-color: var(--code-row-alt);
+}
+
+.code-line {
+    padding: 2px 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: baseline;
+    white-space: pre;
+    word-break: normal;
+    transition: background 0.12s ease;
+}
+
+.code-line:hover {
+    background: rgba(43, 76, 126, 0.06);
+}
+
+/* RIGHT-ALIGNED LINE NUMBERS WITH VERTICAL BORDER DIVIDER */
+.ln {
+    display: inline-block;
+    width: 28px;
+    min-width: 28px;
+    text-align: right;
+    padding-right: 8px;
+    margin-right: 10px;
+    border-right: 1px solid #e0e4e8;
+    color: var(--code-ln-color);
+    user-select: none;
+}
+
+/* INLINE COMMENT ACCORDION (EXPANDABLE UPON CLICK) */
+.line-comment {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.2s ease-out, padding 0.2s ease-out;
+    background: #f8f9fa;
+    border-left: 3px solid #ced4da;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-style: italic;
+    color: #495057;
+    padding: 0 12px;
+    line-height: 1.4;
+    white-space: normal;
+}
+
+[data-theme="dark"] .line-comment {
+    background: #1a1e27;
+    border-left-color: #3d4656;
+    color: #9ca3af;
+}
+
+.code-row.open .line-comment {
+    max-height: 100px;
+    padding: 4px 12px 4px 48px;
+}
+
+.code-row.open .code-line {
+    background: rgba(43, 76, 126, 0.08);
+}
+
+/* LearnCPP Syntax Tokens */
+.tok-keyword { color: var(--tok-keyword); font-weight: 700; }
+.tok-type { color: var(--tok-type); font-weight: 600; }
+.tok-number { color: var(--tok-number); }
+.tok-string { color: var(--tok-string); }
+.tok-comment { color: var(--tok-comment); font-style: italic; } /* Forest Green // Comments */
+
+/* INTERACTIVE TOOLS & RAM GRID (SUBDUED VISUAL STYLING) */
+.interactive-tool-card {
+    background: var(--lcpp-aside-bg);
+    border: 1px solid var(--lcpp-aside-border);
+    border-radius: 4px;
+    padding: 18px;
+    margin: 24px 0;
+}
+
+.tool-title {
+    font-family: var(--font-ui);
+    font-size: 14.5px;
+    font-weight: 700;
+    color: var(--lcpp-text-title);
+    margin-bottom: 4px;
+}
+
+.tool-sub {
+    font-size: 12.5px;
+    color: var(--lcpp-text-meta);
+    margin-bottom: 12px;
+}
+
+.tool-controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.lcpp-btn {
+    padding: 5px 12px;
+    border-radius: 3px;
+    font-family: var(--font-ui);
+    font-size: 11.5px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+}
+
+.lcpp-btn.primary {
+    background: var(--lcpp-brand-navy);
+    color: #ffffff;
+}
+
+.lcpp-btn.secondary {
+    background: var(--lcpp-card-bg);
+    border-color: var(--lcpp-code-pill-border);
+    color: var(--lcpp-text-body);
+}
+
+.ram-grid-cells {
+    display: grid;
+    grid-template-columns: repeat(16, 1fr);
+    gap: 3px;
+    background: #ffffff;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid var(--lcpp-code-pill-border);
+    margin-bottom: 10px;
+}
+
+.ram-cell {
+    aspect-ratio: 1;
+    border-radius: 2px;
+    background: var(--lcpp-code-pill-bg);
+    font-family: var(--font-mono);
+    font-size: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--lcpp-text-meta);
+}
+
+.ram-cell.allocated {
+    background: #e7f5ff;
+    border: 1px solid var(--tok-keyword);
+    color: var(--tok-keyword);
+    font-weight: bold;
+}
+
+.ram-cell.padding {
+    background: #ffe3e3;
+    border: 1px solid #e03131;
+    color: #c92a2a;
+}
+
+.ram-status-bar {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11.5px;
+    font-family: var(--font-mono);
+    color: var(--lcpp-text-meta);
+}
+
+/* CALCULATOR TOOL */
+.calc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.calc-field label {
+    display: block;
+    font-size: 11px;
+    color: var(--lcpp-text-meta);
+    margin-bottom: 3px;
+}
+
+.calc-field input, .calc-field select {
+    width: 100%;
+    background: var(--lcpp-card-bg);
+    border: 1px solid var(--lcpp-code-pill-border);
+    border-radius: 3px;
+    padding: 5px 8px;
+    color: var(--lcpp-text-body);
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+}
+
+.calc-output {
+    background: var(--lcpp-card-bg);
+    border: 1px solid var(--lcpp-code-pill-border);
+    border-radius: 3px;
+    padding: 8px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+}
+
+.out-line { display: flex; justify-content: space-between; }
+.out-line.result { border-top: 1px solid var(--lcpp-code-pill-border); padding-top: 5px; color: var(--tok-keyword); font-weight: bold; }
+
+.benchmark-results-card {
+    background: var(--lcpp-aside-bg);
+    border: 1px solid var(--lcpp-aside-border);
+    border-radius: 4px;
+    padding: 14px;
+    margin-top: 20px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+}
+
+.bm-header { font-weight: 700; color: var(--lcpp-text-title); margin-bottom: 6px; }
+.bm-row { display: flex; justify-content: space-between; padding: 3px 0; }
+.bm-slow { color: #c92a2a; }
+.bm-fast { color: var(--tok-keyword); font-weight: bold; }
+.bm-badge { text-align: center; margin-top: 8px; font-weight: 700; color: var(--tok-keyword); }

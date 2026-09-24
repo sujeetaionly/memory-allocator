@@ -1,0 +1,21 @@
+# Compiled binaries & C++ build artifacts
+*.exe
+*.obj
+*.o
+*.a
+*.lib
+*.dll
+*.pdb
+build/
+
+# Node & Next.js
+node_modules/
+.next/
+.vercel/
+*.log
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
