@@ -7,24 +7,36 @@ interface AnalogyCardProps {
   children: React.ReactNode;
 }
 
+/**
+ * Design System Callout Alert Box (Info / Mental Model Variant)
+ * Matches .tailwind-alert--info design pattern
+ */
 export const AnalogyCard: React.FC<AnalogyCardProps> = ({ title, children }) => {
   return (
-    <div className="my-6 rounded-xl border border-amber-200/80 dark:border-amber-900/50 bg-gradient-to-br from-amber-50/70 via-amber-50/30 to-orange-50/20 dark:from-amber-950/20 dark:via-slate-900 dark:to-slate-900 p-5 shadow-sm transition-all">
-      <div className="flex items-center gap-2.5 mb-2.5">
-        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 text-sm font-bold border border-amber-500/20">
-          💡
-        </span>
-        <div>
-          <span className="text-[10px] font-mono uppercase font-bold tracking-wider text-amber-600 dark:text-amber-400 block">
-            Mental Model Analogy
-          </span>
-          <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-            {title}
-          </h4>
+    <div className="my-5 rounded-md bg-blue-50 p-4 dark:bg-blue-700/25">
+      <div className="flex items-start">
+        <div className="shrink-0">
+          <svg
+            className="h-5 w-5 text-blue-400 dark:text-blue-400"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              fillRule="evenodd"
+              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+              clipRule="evenodd"
+            />
+          </svg>
         </div>
-      </div>
-      <div className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed pl-9">
-        {children}
+        <div className="ml-3 flex-1">
+          <div className="text-sm leading-5 font-semibold text-blue-800 dark:text-blue-200">
+            Mental Model — {title}
+          </div>
+          <div className="mt-2 text-sm leading-6 text-blue-700 dark:text-blue-200/90 space-y-2">
+            {children}
+          </div>
+        </div>
       </div>
     </div>
   );

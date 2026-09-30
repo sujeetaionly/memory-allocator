@@ -1,127 +1,872 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { ModuleId } from '@/types';
+import { useLearner } from '@/stores/LearnerStore';
 import { UniversalRamInspector } from '@/components/virtual-machine/UniversalRamInspector';
 import { useVirtualMachine } from '@/stores/VirtualMachineContext';
+import { AllocatorLogoSvg } from '@/components/common/Header';
+import { ArchitectureFlowDiagram } from '@/components/common/ArchitectureFlowDiagram';
+import {
+  ALLOCATOR_MODULES,
+  COURSE_TIERS,
+  SIDEBAR_CATEGORIES_BY_TIER,
+  CourseTierId,
+  ModuleProgressStatus,
+} from '@/data/allocatorCurriculum';
 
 interface DualPaneLayoutProps {
   children: React.ReactNode;
   interactiveControls?: React.ReactNode;
+  customStageId?: ModuleId;
 }
 
 export const DualPaneLayout: React.FC<DualPaneLayoutProps> = ({
   children,
   interactiveControls,
+  customStageId,
 }) => {
-  const [mobileTab, setMobileTab] = useState<'narrative' | 'machine'>('narrative');
+  const {
+    progress,
+    navigateToModule,
+    setModuleStatus,
+    toggleResource,
+    setSelectedTier,
+    sidebarCollapsed,
+    setSidebarCollapsed,
+    openGlossary,
+    isDark,
+    toggleTheme,
+  } = useLearner();
+
   const { logs, resetMachine } = useVirtualMachine();
 
-  return (
-    <div className="w-full">
-      {/* Mobile/Tablet Sticky Navigation Pill Bar */}
-      <div className="lg:hidden sticky top-[52px] z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 py-2 flex justify-center gap-2">
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [ramDrawerOpen, setRamDrawerOpen] = useState(false);
+  const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
+  const [tierDropdownOpen, setTierDropdownOpen] = useState(false);
+  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({
+    'Getting Started': true,
+    'Memory Fundamentals': true,
+    'The Heap Problem': true,
+    'Phase 1: Bump Allocation': true,
+    'Phase 2: Intrusive Pool': true,
+    'Phase 3: Boundary Tags': true,
+    'Mechanical Sympathy': true,
+    'Quant Engineering Mastery': true,
+    'Curriculum Roadmap': true,
+    'Full Systems Stack': true,
+  });
+
+  const activeStageId: ModuleId = (customStageId || progress.currentStageId || 'stage-0') as ModuleId;
+  const currentMeta = ALLOCATOR_MODULES[activeStageId] || ALLOCATOR_MODULES['stage-0'];
+  const currentTierId: CourseTierId = currentMeta.tier || 'foundations';
+  const tierMeta = COURSE_TIERS[currentTierId];
+
+  // Auto-expand category containing current active stage
+  useEffect(() => {
+    if (currentMeta?.category) {
+      setExpandedCategories((prev) => ({ ...prev, [currentMeta.category]: true }));
+    }
+  }, [currentMeta?.category]);
+
+  const toggleCategory = (cat: string) => {
+    setExpandedCategories((prev) => ({ ...prev, [cat]: !prev[cat] }));
+  };
+
+  const handleSelectModule = (modId: ModuleId, sectionId?: string) => {
+    setMobileSidebarOpen(false);
+    navigateToModule(modId, sectionId);
+  };
+
+  const currentStatus: ModuleProgressStatus =
+    progress.moduleStatuses?.[activeStageId] || 'not_started';
+
+  const statusOptions: { id: ModuleProgressStatus; label: string; badgeClass: string }[] = [
+    { id: 'not_started', label: 'Not Started', badgeClass: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300' },
+    { id: 'reading', label: 'Reading', badgeClass: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/60 dark:text-yellow-300' },
+    { id: 'practicing', label: 'Practicing', badgeClass: 'bg-orange-100 text-orange-800 dark:bg-orange-900/60 dark:text-orange-300' },
+    { id: 'complete', label: 'Complete', badgeClass: 'bg-green-100 text-green-800 dark:bg-green-900/60 dark:text-green-300' },
+    { id: 'skipped', label: 'Skipped', badgeClass: 'bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-300' },
+  ];
+
+  const currentStatusBadge =
+    statusOptions.find((s) => s.id === currentStatus) || statusOptions[0];
+
+  const sidebarCategories =
+    SIDEBAR_CATEGORIES_BY_TIER[currentTierId] ||
+    SIDEBAR_CATEGORIES_BY_TIER.foundations;
+
+  const renderSidebarContent = () => (
+    <div className="flex h-screen flex-col bg-white dark:bg-dark-surface border-r border-gray-200 dark:border-gray-800 w-80 select-none">
+      {/* Top Brand Header */}
+      <div className="flex shrink-0 items-center justify-between pt-5 px-4 pb-2 border-b border-transparent">
         <button
-          onClick={() => setMobileTab('narrative')}
-          className={`px-4 py-1.5 text-xs font-semibold rounded-xl transition-all ${
-            mobileTab === 'narrative'
-              ? 'bg-blue-600 text-white shadow-sm'
-              : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-          }`}
+          onClick={() => handleSelectModule('index')}
+          className="flex items-center space-x-2 text-left cursor-pointer focus:outline-none"
         >
-          📖 Lesson Guide
+          <AllocatorLogoSvg className="h-9 w-9" />
+          <span className="text-xl font-bold tracking-tight text-black dark:text-gray-200">
+            Allocator Guide
+          </span>
         </button>
+
         <button
-          onClick={() => setMobileTab('machine')}
-          className={`px-4 py-1.5 text-xs font-semibold rounded-xl transition-all flex items-center gap-1.5 ${
-            mobileTab === 'machine'
-              ? 'bg-blue-600 text-white shadow-sm'
-              : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-          }`}
+          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+          className="rounded-md p-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition cursor-pointer"
+          title="Toggle sidebar"
+          aria-label="Toggle sidebar"
         >
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          🖥️ Live RAM Studio
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+          </svg>
         </button>
       </div>
 
-      {/* Main Dual-Pane Grid Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start max-w-[1440px] mx-auto px-3 sm:px-6 py-4 sm:py-8">
-        {/* Left Pane: Elevated Narrative Canvas (7 Cols on desktop) */}
-        <div
-          className={`lg:col-span-7 ${
-            mobileTab === 'machine' ? 'hidden lg:block' : 'block'
-          }`}
+      {/* Tier Selector Row */}
+      <div className="relative shrink-0 border-b border-gray-200 dark:border-gray-800">
+        <button
+          onClick={() => setTierDropdownOpen(!tierDropdownOpen)}
+          className="w-full flex items-center justify-between px-4 py-2.5 text-sm font-semibold text-gray-700 dark:text-dark-high-emphasis hover:bg-gray-50 dark:hover:bg-gray-800/60 transition cursor-pointer"
         >
-          <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl sm:rounded-3xl p-4 sm:p-8 lg:p-10 shadow-sm transition-all">
-            {children}
+          <span className="flex items-center gap-2 truncate">
+            <span className="h-2 w-2 rounded-full bg-blue-500 shrink-0" />
+            <span className="truncate">{tierMeta.name}</span>
+          </span>
+          <svg className="h-4 w-4 text-gray-400 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+          </svg>
+        </button>
+
+        {tierDropdownOpen && (
+          <div className="absolute top-full left-0 z-50 w-full bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-lg py-1">
+            <button
+              onClick={() => {
+                setTierDropdownOpen(false);
+                handleSelectModule('index');
+              }}
+              className="w-full px-4 py-2 text-left text-xs font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-800 cursor-pointer"
+            >
+              📋 Course Roadmap (All Tiers)
+            </button>
+            {(Object.keys(COURSE_TIERS) as CourseTierId[]).map((tId) => (
+              <button
+                key={tId}
+                onClick={() => {
+                  setSelectedTier(tId);
+                  setTierDropdownOpen(false);
+                  const firstModInTier = SIDEBAR_CATEGORIES_BY_TIER[tId]?.[0]?.moduleIds[0] || 'stage-0';
+                  handleSelectModule(firstModInTier);
+                }}
+                className={`w-full px-4 py-2 text-left text-xs transition cursor-pointer ${
+                  currentTierId === tId
+                    ? 'bg-gray-100 dark:bg-gray-800 font-bold text-gray-900 dark:text-white'
+                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50'
+                }`}
+              >
+                {COURSE_TIERS[tId].name}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Accordion Categories & Module Items */}
+      <nav className="flex-1 overflow-y-auto">
+        {sidebarCategories.map((group, gIdx) => {
+          const isExpanded = expandedCategories[group.category] ?? true;
+          const hasActiveModule = group.moduleIds.includes(activeStageId);
+
+          return (
+            <div
+              key={gIdx}
+              className={`border-b border-gray-200 last:border-b-0 dark:border-gray-800 ${
+                hasActiveModule ? 'bg-[#f7faff] dark:bg-[#16191f]' : ''
+              }`}
+            >
+              <div
+                onClick={() => toggleCategory(group.category)}
+                className="relative flex cursor-pointer items-center px-4 py-3 text-sm leading-5 font-semibold transition hover:bg-blue-50 dark:hover:bg-gray-900"
+              >
+                <span className="flex-1 text-gray-800 dark:text-dark-high-emphasis">
+                  {group.category}
+                </span>
+                <svg
+                  className={`h-4 w-4 shrink-0 text-gray-500 transition-transform ${
+                    isExpanded ? 'rotate-180' : ''
+                  }`}
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+
+              {isExpanded && (
+                <div className="pb-2">
+                  {group.moduleIds.map((mId) => {
+                    const mMeta = ALLOCATOR_MODULES[mId];
+                    if (!mMeta) return null;
+                    const isActive = mId === activeStageId;
+                    const st = progress.moduleStatuses?.[mId] || 'not_started';
+
+                    let progressClass = 'link-with-progress-container--default';
+                    if (isActive) progressClass = 'link-with-progress-container--active';
+                    else if (st === 'complete') progressClass = 'link-with-progress-container--complete';
+                    else if (st === 'reading') progressClass = 'link-with-progress-container--reading';
+                    else if (st === 'practicing') progressClass = 'link-with-progress-container--practicing';
+                    else if (st === 'skipped') progressClass = 'link-with-progress-container--skipped';
+
+                    return (
+                      <div
+                        key={mId}
+                        onClick={() => handleSelectModule(mId)}
+                        className={`link-with-progress-container cursor-pointer transition ${progressClass}`}
+                      >
+                        <div
+                          className={`link-with-progress-link py-2 pr-4 pl-12 text-sm leading-snug ${
+                            isActive
+                              ? 'link-with-progress-link--active font-semibold'
+                              : ''
+                          }`}
+                        >
+                          {mMeta.shortTitle || mMeta.title}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </nav>
+
+      {/* Bottom Pinned Footer Rows */}
+      <div className="flex shrink-0 border-t border-gray-200 dark:border-gray-800">
+        <button
+          onClick={toggleTheme}
+          className="group flex flex-1 items-center p-3.5 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:text-dark-med-emphasis dark:hover:bg-gray-900 cursor-pointer"
+        >
+          <svg className="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span>{isDark ? 'Theme: Dark' : 'Theme: Light'}</span>
+        </button>
+      </div>
+
+      <div className="flex shrink-0 border-t border-gray-200 dark:border-gray-800">
+        <button
+          onClick={() => openGlossary()}
+          className="group flex flex-1 items-center p-3.5 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:text-dark-med-emphasis dark:hover:bg-gray-900 cursor-pointer"
+        >
+          <svg className="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
+          <span>Concept Glossary</span>
+        </button>
+      </div>
+
+      <div className="flex shrink-0 border-t border-gray-200 dark:border-gray-800">
+        <button
+          onClick={() => setRamDrawerOpen(true)}
+          className="group flex flex-1 items-center p-3.5 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-900 cursor-pointer"
+        >
+          <span className="mr-3 flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span>Live RAM Studio (64B)</span>
+        </button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-white dark:bg-dark-surface text-gray-700 dark:text-dark-high-emphasis">
+      {/* Desktop Fixed Left Sidebar */}
+      {!sidebarCollapsed && (
+        <aside
+          className="fixed top-0 bottom-0 left-0 z-20 hidden lg:block w-80"
+          style={{ width: '20rem' }}
+        >
+          {renderSidebarContent()}
+        </aside>
+      )}
+
+      {/* Floating Reopen Button if Sidebar is Collapsed on Desktop */}
+      {sidebarCollapsed && (
+        <button
+          onClick={() => setSidebarCollapsed(false)}
+          className="fixed bottom-6 left-6 z-40 hidden lg:flex items-center gap-2 rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-lg hover:bg-blue-500 transition cursor-pointer"
+          title="Open sidebar"
+        >
+          <AllocatorLogoSvg className="h-5 w-5 text-white" />
+          <span>Open Guide Sidebar</span>
+        </button>
+      )}
+
+      {/* Mobile Sidebar Overlay */}
+      {mobileSidebarOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity"
+            onClick={() => setMobileSidebarOpen(false)}
+          />
+          <div className="fixed inset-y-0 left-0 z-50 w-80 bg-white dark:bg-dark-surface shadow-2xl">
+            {renderSidebarContent()}
           </div>
         </div>
+      )}
 
-        {/* Right Pane: Sticky Virtual Machine Studio (5 Cols on desktop) */}
-        <div
-          className={`lg:col-span-5 lg:sticky top-[64px] lg:max-h-[calc(100vh-80px)] lg:overflow-y-auto lg:pr-1 space-y-4 sm:space-y-5 scrollbar-thin ${
-            mobileTab === 'narrative' ? 'hidden lg:block' : 'block'
-          }`}
+      {/* Mobile Sticky Top Header */}
+      <div className="sticky inset-x-0 top-0 z-30 flex items-center bg-white dark:bg-dark-surface pt-1 pl-1 shadow-sm border-b border-gray-200 dark:border-gray-800 lg:hidden">
+        <button
+          onClick={() => setMobileSidebarOpen(true)}
+          className="mobile-menu-button-container inline-flex h-12 w-12 shrink-0 items-center justify-center p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white cursor-pointer"
+          aria-label="Open sidebar"
         >
-          {/* Universal RAM Grid */}
-          <UniversalRamInspector />
+          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
 
-          {/* Interactive Laboratory Controls Card */}
-          {interactiveControls && (
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3.5 transition-all">
-              <div className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
-                <span className="flex items-center gap-1.5">
-                  <span>🎮</span>
-                  <span>Interactive Controls</span>
-                </span>
+        <div className="mr-4 ml-2 flex-1 flex items-center justify-between">
+          <div className="flex items-center space-x-2 text-xs truncate">
+            <button
+              onClick={() => handleSelectModule('index')}
+              className="text-gray-500 hover:text-gray-900 dark:text-gray-400 font-medium cursor-pointer"
+            >
+              Home
+            </button>
+            <span className="text-gray-400">/</span>
+            <span className="font-semibold text-gray-900 dark:text-white truncate">
+              {currentMeta.shortTitle || currentMeta.title}
+            </span>
+          </div>
+
+          <div className="flex items-center space-x-2 shrink-0">
+            <button
+              onClick={() => setRamDrawerOpen(true)}
+              className="px-2.5 py-1 text-xs font-semibold rounded bg-blue-50 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300 cursor-pointer"
+            >
+              RAM Studio
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Main 3-Column Content Flow */}
+      <main className="relative overflow-x-hidden pt-6 focus:outline-none lg:pt-4">
+        <div className="mx-auto">
+          <div className="flex justify-center">
+            {/* Column 1: Spacer for Fixed Left Sidebar */}
+            {!sidebarCollapsed && (
+              <div
+                className="order-1 hidden shrink-0 lg:block"
+                style={{ width: '20rem' }}
+                aria-hidden="true"
+              />
+            )}
+
+            {/* Column 3: Right Sticky Column (2xl screens: Table of Contents + Mini RAM Telemetry) */}
+            <div className="order-3 mt-10 mr-6 ml-8 hidden w-72 shrink-0 2xl:block">
+              <div className="sticky top-6 space-y-6">
+                {/* Table of Contents */}
+                <div>
+                  <h2 className="dark:text-dark-med-emphasis mb-3 text-xs font-bold tracking-wider text-gray-500 uppercase">
+                    Table of Contents
+                  </h2>
+                  <div className="space-y-1">
+                    {currentMeta.sections.map((sec) => (
+                      <a
+                        key={sec.id}
+                        href={`#${sec.id}`}
+                        className="block text-sm text-gray-600 hover:underline hover:text-blue-600 dark:text-dark-med-emphasis dark:hover:text-dark-high-emphasis transition"
+                      >
+                        {sec.title}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+
+                <hr className="dark:border-gray-800" />
+
+                {/* Sticky Mini RAM Studio Widget */}
+                <div className="rounded-md border border-gray-200 dark:border-gray-800 p-3 bg-gray-50/60 dark:bg-[#16191f]">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                      <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                      Live RAM State
+                    </span>
+                    <button
+                      onClick={() => setRamDrawerOpen(true)}
+                      className="text-xs text-blue-600 hover:underline dark:text-blue-400 font-semibold cursor-pointer"
+                    >
+                      Expand ↗
+                    </button>
+                  </div>
+                  <UniversalRamInspector />
+                </div>
+              </div>
+            </div>
+
+            {/* Column 2: Center Content Column (max-w-4xl) */}
+            <div className="order-2 w-0 min-w-0 flex-1 overflow-x-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
+              {/* Top Desktop Breadcrumb & Prev/Next Bar */}
+              <div className="hidden lg:block mb-6">
+                <div className="flex sm:justify-between items-center">
+                  {/* Prev Button */}
+                  {currentMeta.prevModule ? (
+                    <button
+                      onClick={() => handleSelectModule(currentMeta.prevModule!)}
+                      className="inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-800 dark:text-dark-med-emphasis dark:hover:text-dark-high-emphasis transition cursor-pointer"
+                    >
+                      <svg className="mr-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      </svg>
+                      Prev
+                    </button>
+                  ) : (
+                    <span className="inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium text-gray-300 dark:text-dark-disabled-emphasis pointer-events-none">
+                      <svg className="mr-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      </svg>
+                      Prev
+                    </span>
+                  )}
+
+                  {/* Breadcrumb Links */}
+                  <nav className="flex flex-wrap items-center text-sm font-medium text-gray-500 dark:text-dark-med-emphasis">
+                    <button
+                      onClick={() => handleSelectModule('index')}
+                      className="hover:text-gray-700 dark:hover:text-dark-high-emphasis transition cursor-pointer"
+                    >
+                      Home
+                    </button>
+                    <svg className="mx-2 h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                    </svg>
+                    <button
+                      onClick={() => {
+                        setSelectedTier(currentTierId);
+                        handleSelectModule('index');
+                      }}
+                      className="hover:text-gray-700 dark:hover:text-dark-high-emphasis transition cursor-pointer"
+                    >
+                      {tierMeta.name}
+                    </button>
+                    <svg className="mx-2 h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                    </svg>
+                    <span className="text-gray-900 dark:text-dark-high-emphasis font-semibold">
+                      {currentMeta.shortTitle || currentMeta.title}
+                    </span>
+                  </nav>
+
+                  {/* Next Button */}
+                  {currentMeta.nextModule ? (
+                    <button
+                      onClick={() => handleSelectModule(currentMeta.nextModule!)}
+                      className="inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-800 dark:text-dark-med-emphasis dark:hover:text-dark-high-emphasis transition cursor-pointer"
+                    >
+                      Next
+                      <svg className="ml-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  ) : (
+                    <span className="inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium text-gray-300 dark:text-dark-disabled-emphasis pointer-events-none">
+                      Next
+                      <svg className="ml-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Module Title Header Block */}
+              <div className="mb-6">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                  <div className="flex-1">
+                    <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900 dark:text-dark-high-emphasis">
+                      {currentMeta.title}
+                    </h1>
+                    <p className="mt-1 text-sm text-gray-500 dark:text-dark-med-emphasis">
+                      Authors: {currentMeta.authors}
+                      {currentMeta.contributors ? ` · ${currentMeta.contributors}` : ''}
+                    </p>
+                    <p className="mt-2 text-sm italic text-gray-600 dark:text-gray-300">
+                      {currentMeta.subtitle}
+                    </p>
+                  </div>
+
+                  {/* Module Status Dropdown */}
+                  <div className="relative shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
+                      className={`inline-flex items-center rounded-md border border-gray-300 dark:border-gray-700 px-4 py-2 text-sm font-medium transition cursor-pointer ${currentStatusBadge.badgeClass}`}
+                    >
+                      <span>{currentStatusBadge.label}</span>
+                      <svg className="ml-2 h-4 w-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+
+                    {statusDropdownOpen && (
+                      <div className="absolute right-0 top-full z-50 mt-1 w-48 rounded-md bg-white py-1 shadow-lg ring-1 ring-black/5 dark:bg-gray-800 dark:ring-gray-700">
+                        {statusOptions.map((opt) => (
+                          <button
+                            key={opt.id}
+                            onClick={() => {
+                              setModuleStatus(activeStageId, opt.id);
+                              setStatusDropdownOpen(false);
+                            }}
+                            className={`flex w-full items-center px-4 py-2 text-left text-sm cursor-pointer ${
+                              currentStatus === opt.id
+                                ? 'bg-blue-50 font-bold text-blue-700 dark:bg-gray-700 dark:text-white'
+                                : 'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700/60'
+                            }`}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Dark Navy Action Bar */}
+                <div className="mt-4 flex items-center justify-between rounded-md bg-gray-100 px-4 py-2.5 text-xs text-gray-700 dark:bg-[#111827] dark:text-gray-300 border border-gray-200 dark:border-gray-800">
+                  <div className="flex items-center space-x-2">
+                    <span className="font-semibold">Language:</span>
+                    <span className="font-mono text-blue-600 dark:text-blue-400 font-bold">C++20</span>
+                  </div>
+
+                  <button
+                    onClick={() => setRamDrawerOpen(true)}
+                    className="inline-flex items-center gap-1.5 font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 cursor-pointer"
+                  >
+                    <span>⚡ Live 64-Byte RAM Studio</span>
+                    <span className="text-[10px]">↗</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Inline Table of Contents on < 2xl screens */}
+              <div className="2xl:hidden mb-6">
+                <h2 className="dark:text-dark-high-emphasis mt-6 mb-2 font-bold tracking-wider text-gray-500 uppercase text-xs">
+                  Table of Contents
+                </h2>
+                <div className="space-y-1">
+                  {currentMeta.sections.map((sec) => (
+                    <a
+                      key={sec.id}
+                      href={`#${sec.id}`}
+                      className="block text-sm text-gray-600 hover:underline hover:text-blue-600 dark:text-dark-med-emphasis dark:hover:text-dark-high-emphasis transition"
+                    >
+                      {sec.title}
+                    </a>
+                  ))}
+                </div>
+                <hr className="my-6 dark:border-gray-700" />
+              </div>
+
+              {/* Purple Resources Table */}
+              {currentMeta.resources?.length > 0 && (
+                <div className="mb-8 overflow-hidden rounded-lg border border-gray-200 shadow-sm dark:border-gray-800">
+                  <table className="min-w-full text-sm">
+                    <thead>
+                      <tr>
+                        <th
+                          colSpan={4}
+                          className="border-b border-gray-200 bg-purple-50 px-4 py-3 text-left text-xs font-semibold tracking-wider text-purple-700 uppercase dark:border-gray-800 dark:bg-purple-700/25 dark:text-purple-200"
+                        >
+                          Resources &amp; Core Prerequisites
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="table-alternating-stripes divide-y divide-gray-200 dark:divide-gray-800">
+                      {currentMeta.resources.map((res) => {
+                        const isDone = progress.completedResources?.includes(res.id);
+                        return (
+                          <tr key={res.id} className="transition-colors">
+                            {/* Checkbox */}
+                            <td className="w-10 px-3 py-3 text-center">
+                              <input
+                                type="checkbox"
+                                checked={isDone}
+                                onChange={() => toggleResource(res.id)}
+                                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                title="Mark resource complete"
+                              />
+                            </td>
+
+                            {/* Source Tag Badge */}
+                            <td className="px-3 py-3 whitespace-nowrap text-xs font-mono text-gray-500 dark:text-dark-med-emphasis">
+                              <span
+                                className="cursor-pointer border-b border-dashed border-gray-400 dark:border-gray-600"
+                                title={res.sourceTooltip}
+                              >
+                                {res.source}
+                              </span>
+                            </td>
+
+                            {/* Title Link */}
+                            <td className="px-3 py-3 font-medium text-gray-900 dark:text-dark-high-emphasis">
+                              {res.sectionId ? (
+                                <a
+                                  href={`#${res.sectionId}`}
+                                  className="text-blue-600 hover:underline dark:text-blue-400"
+                                >
+                                  {res.title}
+                                </a>
+                              ) : (
+                                <span>{res.title}</span>
+                              )}
+                            </td>
+
+                            {/* Description */}
+                            <td className="px-3 py-3 text-xs text-gray-500 dark:text-dark-med-emphasis hidden sm:table-cell">
+                              {res.description}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {/* Interactive Architecture Flow Diagram */}
+              <div id={`sec-${activeStageId}-flow`}>
+                <ArchitectureFlowDiagram stageId={activeStageId} />
+              </div>
+
+              {/* Main Markdown Article Content */}
+              <div className="markdown">{children}</div>
+
+              {/* Inline Interactive RAM Studio & Controls Card */}
+              <div className="my-8 rounded-lg border border-gray-200 dark:border-gray-800 p-5 bg-gray-50/70 dark:bg-[#16191f] shadow-sm">
+                <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 pb-3 mb-4">
+                  <div className="flex items-center gap-2">
+                    <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <h3 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">
+                      Interactive 64-Byte RAM Studio &amp; Hardware Telemetry
+                    </h3>
+                  </div>
+                  <button
+                    onClick={resetMachine}
+                    className="text-xs font-mono text-gray-500 hover:text-red-500 transition cursor-pointer"
+                  >
+                    ↺ Reset RAM Buffer
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <UniversalRamInspector />
+
+                  {interactiveControls && (
+                    <div className="pt-3 border-t border-gray-200 dark:border-gray-800">
+                      <div className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
+                        Module Laboratory Controls:
+                      </div>
+                      {interactiveControls}
+                    </div>
+                  )}
+
+                  {/* Hardware Bus Event Log */}
+                  <div className="rounded bg-black p-3 font-mono text-xs text-slate-300">
+                    <div className="flex items-center justify-between border-b border-gray-800 pb-1.5 mb-2 text-[11px] text-gray-400">
+                      <span>HARDWARE BUS TELEMETRY</span>
+                      <span className="text-emerald-400 text-[10px]">● ACTIVE</span>
+                    </div>
+                    <div className="h-24 overflow-y-auto space-y-1">
+                      {logs.slice(-6).map((lg, i) => (
+                        <div key={i} className="flex gap-2">
+                          <span className="text-gray-500 select-none">{lg.time}</span>
+                          <span
+                            className={
+                              lg.type === 'alloc'
+                                ? 'text-emerald-400'
+                                : lg.type === 'free'
+                                ? 'text-cyan-400'
+                                : lg.type === 'warn'
+                                ? 'text-amber-400'
+                                : 'text-gray-300'
+                            }
+                          >
+                            {lg.text}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom Module Progress Bar */}
+              <div className="my-10 border-t border-b border-gray-200 dark:border-gray-800 py-8 text-center">
+                <div className="text-base font-semibold text-gray-800 dark:text-dark-high-emphasis mb-3">
+                  Module Progress:
+                </div>
+                <div className="inline-flex rounded-md shadow-sm">
+                  {statusOptions.map((opt) => (
+                    <button
+                      key={opt.id}
+                      onClick={() => setModuleStatus(activeStageId, opt.id)}
+                      className={`px-4 py-2 text-xs font-semibold first:rounded-l-md last:rounded-r-md border border-gray-300 dark:border-gray-700 transition cursor-pointer ${
+                        currentStatus === opt.id
+                          ? 'bg-blue-600 text-white border-blue-600'
+                          : 'bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Gray CTA Box */}
+              <div className="my-8 rounded-lg bg-gray-50 p-5 sm:p-6 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
+                <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1">
+                  Ready to test your low-level allocator in code?
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                  Open the full Interactive Allocator Sandbox to stress test Arena, Free-List, and Variable boundary tags with arbitrary allocations.
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    onClick={() => handleSelectModule('sandbox')}
+                    className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 cursor-pointer"
+                  >
+                    Open Sandbox Studio →
+                  </button>
+                  <button
+                    onClick={() => openGlossary()}
+                    className="rounded-md border border-gray-300 dark:border-gray-700 px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
+                  >
+                    Systems Dictionary 📖
+                  </button>
+                </div>
+              </div>
+
+              {/* Bottom Prev / Home / Next Navigation Bar */}
+              <div className="my-10 flex items-center justify-between border-t border-gray-200 dark:border-gray-800 pt-6 pb-12">
+                {currentMeta.prevModule ? (
+                  <button
+                    onClick={() => handleSelectModule(currentMeta.prevModule!)}
+                    className="inline-flex items-center text-sm font-medium text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 cursor-pointer"
+                  >
+                    <svg className="mr-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                    Previous: {currentMeta.prevLabel || 'Previous Module'}
+                  </button>
+                ) : (
+                  <div />
+                )}
+
+                {currentMeta.nextModule ? (
+                  <button
+                    onClick={() => handleSelectModule(currentMeta.nextModule!)}
+                    className="inline-flex items-center text-sm font-medium text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 cursor-pointer"
+                  >
+                    Next: {currentMeta.nextLabel || 'Next Module'}
+                    <svg className="ml-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handleSelectModule('index')}
+                    className="inline-flex items-center text-sm font-medium text-blue-600 hover:underline dark:text-blue-400 cursor-pointer"
+                  >
+                    Return to Course Index ✓
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      {/* Slide-Over RAM Studio Drawer (available on all viewports) */}
+      {ramDrawerOpen && (
+        <div className="fixed inset-0 z-50 overflow-hidden">
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity"
+            onClick={() => setRamDrawerOpen(false)}
+          />
+          <div className="fixed inset-y-0 right-0 z-50 flex max-w-full pl-10">
+            <div className="w-screen max-w-md bg-white dark:bg-dark-surface border-l border-gray-200 dark:border-gray-800 shadow-2xl p-6 flex flex-col space-y-4">
+              <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 pb-3">
+                <div className="flex items-center gap-2">
+                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <h2 className="text-base font-bold text-gray-900 dark:text-white">
+                    Live 64-Byte Hardware RAM Studio
+                  </h2>
+                </div>
                 <button
-                  onClick={resetMachine}
-                  className="text-[11px] font-mono font-medium text-slate-400 hover:text-red-500 transition-colors"
-                  title="Clear hardware memory buffer"
+                  onClick={() => setRamDrawerOpen(false)}
+                  className="rounded-md p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 cursor-pointer"
                 >
-                  ↺ Clear
+                  ✕
                 </button>
               </div>
-              <div>{interactiveControls}</div>
-            </div>
-          )}
 
-          {/* Real-Time Hardware Telemetry Bus Log */}
-          <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 font-mono text-[11px] shadow-sm space-y-2">
-            <div className="text-slate-400 text-[10.5px] uppercase font-bold tracking-wider flex items-center justify-between border-b border-slate-800/80 pb-2">
-              <span className="flex items-center gap-1.5 text-slate-300">
-                <span>⚡</span>
-                <span>Hardware Bus Event Log</span>
-              </span>
-              <span className="text-emerald-400 text-[9.5px] font-bold tracking-widest flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                ACTIVE
-              </span>
-            </div>
-            <div className="h-28 sm:h-32 overflow-y-auto space-y-1.5 text-slate-300 pr-1 select-text scrollbar-thin">
-              {logs.map((lg, i) => (
-                <div key={i} className="flex items-start gap-2 leading-relaxed">
-                  <span className="text-slate-500 select-none text-[10px] w-12 pt-0.5 shrink-0">
-                    {lg.time}
-                  </span>
-                  <span
-                    className={`flex-1 ${
-                      lg.type === 'alloc'
-                        ? 'text-emerald-400'
-                        : lg.type === 'free'
-                        ? 'text-teal-400'
-                        : lg.type === 'warn'
-                        ? 'text-amber-400'
-                        : 'text-slate-300'
-                    }`}
-                  >
-                    {lg.text}
-                  </span>
+              <div className="flex-1 overflow-y-auto space-y-4">
+                <UniversalRamInspector />
+
+                {interactiveControls && (
+                  <div className="rounded-md border border-gray-200 dark:border-gray-800 p-4 bg-gray-50 dark:bg-[#16191f]">
+                    <div className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
+                      Interactive Controls
+                    </div>
+                    {interactiveControls}
+                  </div>
+                )}
+
+                <div className="rounded-md bg-black p-3 font-mono text-xs text-slate-300">
+                  <div className="flex items-center justify-between border-b border-gray-800 pb-1 mb-2 text-[10px] text-gray-400">
+                    <span>BUS EVENT LOG</span>
+                    <button
+                      onClick={resetMachine}
+                      className="text-gray-400 hover:text-red-400 text-[10px] cursor-pointer"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                  <div className="h-36 overflow-y-auto space-y-1">
+                    {logs.map((lg, i) => (
+                      <div key={i} className="flex gap-2">
+                        <span className="text-gray-500">{lg.time}</span>
+                        <span
+                          className={
+                            lg.type === 'alloc'
+                              ? 'text-emerald-400'
+                              : lg.type === 'free'
+                              ? 'text-cyan-400'
+                              : lg.type === 'warn'
+                              ? 'text-amber-400'
+                              : 'text-gray-300'
+                          }
+                        >
+                          {lg.text}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              ))}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

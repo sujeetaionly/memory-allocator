@@ -1,337 +1,425 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { ModuleId } from '@/types';
 import { useLearner } from '@/stores/LearnerStore';
-
-interface TopicItem {
-  num: string;
-  title: string;
-  moduleId: ModuleId;
-  sectionId?: string;
-}
-
-interface UnitItem {
-  unitNum: number;
-  unitTitle: string;
-  topics: TopicItem[];
-}
-
-interface StageItem {
-  id: string;
-  stageNumber: string;
-  name: string;
-  badge: string;
-  badgeColor: string;
-  moduleId: ModuleId;
-  description: string;
-  units: UnitItem[];
-}
+import {
+  COURSE_TIERS,
+  ALLOCATOR_MODULES,
+  CourseTierId,
+  ModuleProgressStatus,
+} from '@/data/allocatorCurriculum';
 
 interface CourseIndexProps {
   onSelectTopic: (moduleId: ModuleId, sectionId?: string) => void;
 }
 
 export const CourseIndex: React.FC<CourseIndexProps> = ({ onSelectTopic }) => {
-  const { progress } = useLearner();
+  const { progress, setSelectedTier } = useLearner();
+  const [filterMode, setFilterMode] = useState<'all' | CourseTierId>('all');
 
-  const stages: StageItem[] = [
+  const activeTier = COURSE_TIERS[progress.selectedTier || 'foundations'];
+
+  const allModulesList = [
+    ALLOCATOR_MODULES['stage-0'],
+    ALLOCATOR_MODULES['stage-1'],
+    ALLOCATOR_MODULES['stage-2'],
+    ALLOCATOR_MODULES['stage-3'],
+    ALLOCATOR_MODULES['stage-4'],
+    ALLOCATOR_MODULES['stage-5'],
+    ALLOCATOR_MODULES['stage-6'],
+    ALLOCATOR_MODULES['stage-7'],
+    ALLOCATOR_MODULES['sandbox'],
+  ];
+
+  // Calculate module status counts
+  const totalModules = allModulesList.length;
+  let completedMods = 0;
+  let inProgressMods = 0;
+  let skippedMods = 0;
+  let notStartedMods = 0;
+
+  allModulesList.forEach((m) => {
+    const st: ModuleProgressStatus = progress.moduleStatuses?.[m.id] || 'not_started';
+    if (st === 'complete') completedMods++;
+    else if (st === 'reading' || st === 'practicing') inProgressMods++;
+    else if (st === 'skipped') skippedMods++;
+    else notStartedMods++;
+  });
+
+  // Calculate problems / interactive challenges progress
+  const totalProblems = 18;
+  const completedProblems = progress.completedChallenges.length;
+  const inProgressProblems = completedProblems > 0 && completedProblems < totalProblems ? 2 : 0;
+  const notStartedProblems = Math.max(0, totalProblems - completedProblems - inProgressProblems);
+
+  const syllabusCategories: {
+    categoryTitle: string;
+    tier: CourseTierId;
+    subtitle: string;
+    moduleIds: ModuleId[];
+  }[] = [
     {
-      id: 'stage-0',
-      stageNumber: 'STAGE 0',
-      name: 'The Physical Machine & The Illusion of Memory',
-      badge: 'ZERO PREREQUISITES',
-      badgeColor: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300',
-      moduleId: 'stage-0',
-      description:
-        'Start from bare silicon transistors, physical voltage, 8-bit bytes, hexadecimal address lockers, and the CPU memory wall.',
-      units: [
-        {
-          unitNum: 1,
-          unitTitle: 'Physical Silicon & Byte Addressing',
-          topics: [
-            { num: '0.1', title: 'What is Physical RAM & What is a Byte?', moduleId: 'stage-0', sectionId: 'sec-stage0-bits' },
-            { num: '0.2', title: 'Hexadecimal: The Language of Memory Addresses', moduleId: 'stage-0', sectionId: 'sec-stage0-hex' },
-            { num: '0.3', title: 'The Memory Wall: CPU Speed vs RAM Latency', moduleId: 'stage-0', sectionId: 'sec-stage0-wall' },
-          ],
-        },
-      ],
+      categoryTitle: 'Getting Started · Physical RAM',
+      tier: 'foundations',
+      subtitle: 'Physical silicon capacitors, 8-bit bytes, hexadecimal offsets, and the 64-byte hardware lab.',
+      moduleIds: ['stage-0', 'sandbox'],
     },
     {
-      id: 'stage-1',
-      stageNumber: 'STAGE 1',
-      name: 'The C++ Machine Model, Pointers & The Stack',
-      badge: 'FIRST PRINCIPLES',
-      badgeColor: 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300',
-      moduleId: 'stage-1',
-      description:
-        'Demystify types as byte spans, variables as nicknames, and pointers as locker envelopes. Step through real memory mutations.',
-      units: [
-        {
-          unitNum: 1,
-          unitTitle: 'Memory Layout & Pointers Demystified',
-          topics: [
-            { num: '1.1', title: 'Data Types are Simply Byte Spans (char, int, double)', moduleId: 'stage-1', sectionId: 'sec-stage1-types' },
-            { num: '1.2', title: 'Pointers Demystified: The Address Envelope (& and *)', moduleId: 'stage-1', sectionId: 'sec-stage1-pointers' },
-            { num: '1.3', title: 'The Stack: 1-Cycle Speed with Strict Lifetime Limits', moduleId: 'stage-1', sectionId: 'sec-stage1-stack' },
-          ],
-        },
-      ],
+      categoryTitle: 'The C++ Machine & Heap',
+      tier: 'machine-model',
+      subtitle: 'How C++ types map to byte spans, pointers as address envelopes, stack frames, and the OS heap bottleneck.',
+      moduleIds: ['stage-1', 'stage-2'],
     },
     {
-      id: 'stage-2',
-      stageNumber: 'STAGE 2',
-      name: 'The Dynamic Memory Problem & The OS Heap Bottleneck',
-      badge: 'THE ROOT PROBLEM',
-      badgeColor: 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300',
-      moduleId: 'stage-2',
-      description:
-        'Understand why standard malloc causes catastrophic latency spikes: kernel traps, multi-threaded mutex locks, and Swiss-cheese fragmentation.',
-      units: [
-        {
-          unitNum: 1,
-          unitTitle: 'The Three Sins of Standard Heap',
-          topics: [
-            { num: '2.1', title: 'The Three Fatal Sins of Standard Malloc', moduleId: 'stage-2', sectionId: 'sec-stage2-traps' },
-            { num: '2.2', title: 'The Paradigm Shift: Why We Build Custom Allocators', moduleId: 'stage-2', sectionId: 'sec-stage2-solution' },
-          ],
-        },
-      ],
+      categoryTitle: 'Custom Allocator Engines',
+      tier: 'allocator-engines',
+      subtitle: 'Production C++20 memory allocators: Bump Arena (42x), Free-List (125x), and Knuth Boundary Tags.',
+      moduleIds: ['stage-3', 'stage-4', 'stage-5'],
     },
     {
-      id: 'stage-3',
-      stageNumber: 'STAGE 3',
-      name: 'Phase 1: Linear Arena (Bump Pointer) Allocator',
-      badge: '42.04x FASTER',
-      badgeColor: 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300',
-      moduleId: 'stage-3',
-      description:
-        'Construct the fastest allocator known to computer science. 1-cycle integer bump pointer addition, placement new, and bulk reset.',
-      units: [
-        {
-          unitNum: 1,
-          unitTitle: 'Bump Pointer & Object Construction',
-          topics: [
-            { num: '3.1', title: 'Raw Memory Representation with std::byte[]', moduleId: 'stage-3', sectionId: 'sec-p1-raw' },
-            { num: '3.2', title: 'Placement new: Constructing Objects in Pre-Allocated RAM', moduleId: 'stage-3', sectionId: 'sec-p1-placement' },
-            { num: '3.3', title: 'The Arena Tradeoff: Bulk Reset vs Individual Free', moduleId: 'stage-3', sectionId: 'sec-p1-destruct' },
-          ],
-        },
-      ],
+      categoryTitle: 'Hardware Sympathy & Caches',
+      tier: 'hardware-sympathy',
+      subtitle: '1-cycle bitwise alignment math, 64-byte L1 cache lines, struct padding elimination, and false sharing.',
+      moduleIds: ['stage-6'],
     },
     {
-      id: 'stage-4',
-      stageNumber: 'STAGE 4',
-      name: 'Phase 2: Fixed-Size Free-List (Order Pool)',
-      badge: '125.7x FASTER',
-      badgeColor: 'bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300',
-      moduleId: 'stage-4',
-      description:
-        'Recycle individual fixed-size chunks in O(1) time without any metadata overhead by using the intrusive embedded union technique.',
-      units: [
-        {
-          unitNum: 1,
-          unitTitle: 'Embedded Unions & Zero Overhead',
-          topics: [
-            { num: '4.1', title: 'The Zero-Overhead Embedded Union Technique (union NodeUnion)', moduleId: 'stage-4', sectionId: 'sec-p2-union' },
-            { num: '4.2', title: 'O(1) Singly-Linked Push & Pop Mechanics', moduleId: 'stage-4', sectionId: 'sec-p2-o1' },
-          ],
-        },
-      ],
-    },
-    {
-      id: 'stage-5',
-      stageNumber: 'STAGE 5',
-      name: 'Phase 3: Variable-Size Boundary-Tag Allocator',
-      badge: '15.02x FASTER',
-      badgeColor: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300',
-      moduleId: 'stage-5',
-      description:
-        'Handle arbitrary-sized messages with Donald Knuth boundary headers and footers, enabling instant O(1) bidirectional coalescing.',
-      units: [
-        {
-          unitNum: 1,
-          unitTitle: 'Boundary Tags & Instant Coalescing',
-          topics: [
-            { num: '5.1', title: "Donald Knuth's Boundary Tag Invention (Headers & Footers)", moduleId: 'stage-5', sectionId: 'sec-p3-tags' },
-            { num: '5.2', title: 'Instant O(1) Left & Right Neighbor Coalescing', moduleId: 'stage-5', sectionId: 'sec-p3-coalesce' },
-          ],
-        },
-      ],
-    },
-    {
-      id: 'stage-6',
-      stageNumber: 'STAGE 6',
-      name: 'The Hardware Reality: Bitwise Math & 64B Cache Lines',
-      badge: 'MECHANICAL SYMPATHY',
-      badgeColor: 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300',
-      moduleId: 'stage-6',
-      description:
-        'Master the 1-cycle bitwise alignment mask formula, understand 64-byte CPU cache lines, and eliminate multi-core false sharing.',
-      units: [
-        {
-          unitNum: 1,
-          unitTitle: 'Bus Alignment & Cache Locality',
-          topics: [
-            { num: '6.1', title: '1-Clock-Cycle Bitwise Alignment Formula: (addr + align - 1) & ~(align - 1)', moduleId: 'stage-6', sectionId: 'sec-p4-formula' },
-            { num: '6.2', title: 'Interactive Bitwise Alignment Calculator', moduleId: 'stage-6', sectionId: 'sec-p4-calc' },
-            { num: '6.3', title: '64-Byte CPU Cache Lines & Multi-Core False Sharing', moduleId: 'stage-6', sectionId: 'sec-p4-cache' },
-            { num: '6.4', title: 'Struct Member Reordering & Padding Optimization', moduleId: 'stage-6', sectionId: 'sec-p4-padding' },
-          ],
-        },
-      ],
-    },
-    {
-      id: 'stage-7',
-      stageNumber: 'STAGE 7',
-      name: 'Systems Capstone: Benchmarks & Quant War Room',
-      badge: 'CAREER READY',
-      badgeColor: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300',
-      moduleId: 'stage-7',
-      description:
-        'Empirical latency benchmarks across 1,000,000 operations, compiler escape barriers, and Citadel/Jane Street interview drills.',
-      units: [
-        {
-          unitNum: 1,
-          unitTitle: 'Tail Latency & Interview Drills',
-          topics: [
-            { num: '7.1', title: 'The Tyranny of Tail Latency (P99 / P99.9)', moduleId: 'stage-7', sectionId: 'sec-stage7-tail' },
-            { num: '7.2', title: 'Standardized Benchmark Matrix (1,000,000 Operations)', moduleId: 'stage-7', sectionId: 'sec-stage7-matrix' },
-            { num: '7.3', title: 'Technical Systems & Quant Interview Drills', moduleId: 'stage-7', sectionId: 'sec-stage7-interview' },
-          ],
-        },
-      ],
+      categoryTitle: 'Quant Systems & Capstone',
+      tier: 'quant-capstone',
+      subtitle: 'P99.99 tail latency, 1,000,000-op benchmarks, flashcards, quiz, and resume bullet generator.',
+      moduleIds: ['stage-7'],
     },
   ];
 
-  return (
-    <div className="py-8 space-y-10 max-w-5xl mx-auto px-4 sm:px-6">
-      {/* Hero Banner with Responsive Flex Layout (No absolute collision bugs) */}
-      <div className="rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-blue-950 text-white p-6 sm:p-10 shadow-xl border border-slate-800 flex flex-col lg:flex-row lg:items-center justify-between gap-8 transition-all">
-        {/* Left Column: Headlines & Action Buttons */}
-        <div className="space-y-4 max-w-xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30 text-xs font-mono">
-            <span>⚡ Zero-to-Hero Systems Academy</span>
-          </div>
-          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight leading-tight">
-            Master Low-Level Systems &amp; C++ Memory Allocators
-          </h1>
-          <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-            Designed specifically for beginners with <strong>zero low-level experience</strong>. Journey from raw electrical silicon to engineering production-grade C++ memory allocators running <strong>125x faster than std::malloc</strong>.
-          </p>
+  const visibleCategories =
+    filterMode === 'all'
+      ? syllabusCategories
+      : syllabusCategories.filter((c) => c.tier === filterMode);
 
-          <div className="flex flex-wrap items-center gap-3 pt-2">
+  const getProgressContainerClass = (modId: string) => {
+    const st = progress.moduleStatuses?.[modId] || 'not_started';
+    if (st === 'complete') return 'link-with-progress-container--complete';
+    if (st === 'reading') return 'link-with-progress-container--reading';
+    if (st === 'practicing') return 'link-with-progress-container--practicing';
+    if (st === 'skipped') return 'link-with-progress-container--skipped';
+    return 'link-with-progress-container--default';
+  };
+
+  const renderFrequencyDots = (freq: number, label?: string) => {
+    if (!freq) return null;
+    const isVery = freq >= 4;
+    const activeDotClass = isVery
+      ? 'text-gray-400 group-hover:text-green-600 dark:group-hover:text-green-400'
+      : 'text-gray-400 group-hover:text-teal-600 dark:group-hover:text-teal-400';
+    const labelHoverClass = isVery
+      ? 'text-gray-500 group-hover:text-green-700 dark:group-hover:text-green-400'
+      : 'text-gray-500 group-hover:text-teal-700 dark:group-hover:text-teal-400';
+
+    return (
+      <p className="mb-1 flex items-center text-sm leading-4">
+        {[1, 2, 3, 4].map((dotIdx) => (
+          <svg
+            key={dotIdx}
+            className={`mr-0.5 h-2.5 w-2.5 transition ${
+              dotIdx <= freq ? activeDotClass : 'text-gray-300 dark:text-gray-600'
+            }`}
+            fill="currentColor"
+            viewBox="0 0 8 8"
+          >
+            <circle cx="4" cy="4" r="3" />
+          </svg>
+        ))}
+        <span className={`ml-1 transition ${labelHoverClass}`}>
+          {label || 'Essential Architecture'}
+        </span>
+      </p>
+    );
+  };
+
+  return (
+    <main className="w-full">
+      {/* Tier Hero Banner */}
+      <div className={`${activeTier.bannerBgClass} py-12 sm:py-16 transition-colors duration-200`}>
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          {/* Tier Switcher Pills inside Hero Banner */}
+          <div className="mb-6 flex flex-wrap justify-center gap-2">
+            {(
+              [
+                { id: 'all', label: 'All Tiers' },
+                { id: 'foundations', label: 'Foundations' },
+                { id: 'machine-model', label: 'C++ Machine' },
+                { id: 'allocator-engines', label: 'Allocators' },
+                { id: 'hardware-sympathy', label: 'Hardware Sympathy' },
+                { id: 'quant-capstone', label: 'Quant Capstone' },
+              ] as const
+            ).map((tab) => {
+              const isSelected =
+                tab.id === 'all'
+                  ? filterMode === 'all'
+                  : filterMode === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => {
+                    setFilterMode(tab.id);
+                    if (tab.id !== 'all') {
+                      setSelectedTier(tab.id);
+                    }
+                  }}
+                  className={`rounded-full px-3.5 py-1 text-xs font-semibold tracking-wide uppercase transition cursor-pointer ${
+                    isSelected
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'bg-black/25 text-white/85 hover:bg-black/40 hover:text-white'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+
+          <h1 className="mb-6 text-center text-4xl leading-10 font-black tracking-tight text-white sm:leading-none sm:text-5xl md:text-6xl">
+            {filterMode === 'all' ? 'Memory Allocator Guide' : activeTier.heroTitle}
+          </h1>
+
+          <p className={`${activeTier.bannerTextClass} mb-8 px-4 text-center sm:mb-12 max-w-3xl mx-auto leading-relaxed`}>
+            {filterMode === 'all'
+              ? 'From bare silicon capacitors and C++ pointer envelopes to high-performance Bump Arena, Intrusive Free-List, Knuth Boundary Tags, and P99.99 quant benchmarks.'
+              : activeTier.heroSubtitle}
+            <br />
+            Every module includes an interactive 64-byte hardware RAM simulator, step-by-step C++20 code execution, and hands-on micro-challenges.{' '}
             <button
               onClick={() => onSelectTopic('stage-0')}
-              className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs sm:text-sm shadow-md transition-all flex items-center gap-2"
+              className="underline font-semibold text-white hover:opacity-90 cursor-pointer"
             >
-              Start Story Quest (Stage 0) ▶
+              Start with Stage 0 (Using This Guide) →
             </button>
-            <button
-              onClick={() => onSelectTopic('sandbox')}
-              className="px-4 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 font-semibold text-xs sm:text-sm border border-slate-700 transition-all flex items-center gap-1.5"
-            >
-              🎮 Open Allocator Sandbox
-            </button>
-          </div>
-        </div>
+          </p>
 
-        {/* Right Column: Telemetry Summary Card */}
-        <div className="bg-slate-950/80 backdrop-blur rounded-2xl p-5 border border-slate-800 text-xs font-mono space-y-3.5 min-w-[260px] shadow-inner">
-          <div className="text-slate-400 text-[10.5px] uppercase font-bold tracking-wider border-b border-slate-800 pb-2 flex items-center justify-between">
-            <span>Learner Telemetry</span>
-            <span className="text-emerald-400">● SYNCED</span>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
-              <span className="text-slate-400 text-[10px] block font-sans">TOTAL SCORE</span>
-              <span className="text-lg font-bold text-amber-400">⚡ {progress.xp}</span>
-              <span className="text-[10px] text-slate-500 ml-1">XP</span>
+          {/* Two Progress Cards (Modules Progress & Problems Progress) */}
+          <div className="mx-auto grid max-w-2xl gap-8 lg:max-w-full lg:grid-cols-2">
+            {/* Card 1: Modules Progress */}
+            <div className="bg-white shadow-sm sm:rounded-lg dark:bg-gray-900">
+              <div className="px-4 py-5 sm:p-6">
+                <h3 className="dark:text-dark-high-emphasis text-lg leading-6 font-medium text-gray-900">
+                  Modules Progress
+                </h3>
+                <div className="mt-6">
+                  <div className="mb-4 grid grid-cols-4 gap-2">
+                    <div className="text-center">
+                      <span className="text-3xl font-bold text-green-800 dark:text-green-100 bg-green-100 dark:bg-green-800 inline-flex h-16 w-16 items-center justify-center rounded-full">
+                        {completedMods}
+                      </span>
+                      <span className="mt-1 block text-xs sm:text-sm font-medium uppercase text-green-800 dark:text-green-100">
+                        Completed
+                      </span>
+                    </div>
+                    <div className="text-center">
+                      <span className="text-3xl font-bold text-yellow-800 dark:text-yellow-100 bg-yellow-100 dark:bg-yellow-800 inline-flex h-16 w-16 items-center justify-center rounded-full">
+                        {inProgressMods}
+                      </span>
+                      <span className="mt-1 block text-xs sm:text-sm font-medium uppercase text-yellow-800 dark:text-yellow-100">
+                        In Progress
+                      </span>
+                    </div>
+                    <div className="text-center">
+                      <span className="text-3xl font-bold text-blue-800 dark:text-blue-50 bg-blue-50 dark:bg-blue-800 inline-flex h-16 w-16 items-center justify-center rounded-full">
+                        {skippedMods}
+                      </span>
+                      <span className="mt-1 block text-xs sm:text-sm font-medium uppercase text-blue-800 dark:text-blue-50">
+                        Skipped
+                      </span>
+                    </div>
+                    <div className="text-center">
+                      <span className="text-3xl font-bold text-gray-800 bg-gray-100 dark:bg-gray-800 dark:text-gray-200 inline-flex h-16 w-16 items-center justify-center rounded-full">
+                        {notStartedMods}
+                      </span>
+                      <span className="mt-1 block text-xs sm:text-sm font-medium uppercase text-gray-800 dark:text-gray-100">
+                        Not Started
+                      </span>
+                    </div>
+                  </div>
+                  <div className="relative">
+                    <div className="flex h-4 overflow-hidden bg-gray-200 text-xs dark:bg-gray-700 rounded">
+                      <div
+                        style={{ width: `${(completedMods / totalModules) * 100}%` }}
+                        className="flex flex-col justify-center bg-green-500 text-center whitespace-nowrap text-white shadow-none dark:bg-green-700"
+                      />
+                      <div
+                        style={{ width: `${(inProgressMods / totalModules) * 100}%` }}
+                        className="flex flex-col justify-center bg-yellow-400 text-center whitespace-nowrap text-white shadow-none dark:bg-yellow-600"
+                      />
+                      <div
+                        style={{ width: `${(skippedMods / totalModules) * 100}%` }}
+                        className="flex flex-col justify-center bg-blue-500 text-center whitespace-nowrap text-white shadow-none dark:bg-blue-700"
+                      />
+                    </div>
+                    <div className="text-right mt-1">
+                      <span className="dark:text-dark-med-emphasis inline-block text-sm font-semibold text-gray-800">
+                        {totalModules} total
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
-              <span className="text-slate-400 text-[10px] block font-sans">CHALLENGES</span>
-              <span className="text-lg font-bold text-emerald-400">
-                {progress.completedChallenges.length}
-              </span>
-              <span className="text-[10px] text-slate-500 ml-1">Done</span>
+
+            {/* Card 2: Problems & Labs Progress */}
+            <div className="bg-white shadow-sm sm:rounded-lg dark:bg-gray-900">
+              <div className="px-4 py-5 sm:p-6">
+                <h3 className="dark:text-dark-high-emphasis text-lg leading-6 font-medium text-gray-900">
+                  Problems &amp; Labs Progress
+                </h3>
+                <div className="mt-6">
+                  <div className="mb-4 grid grid-cols-4 gap-2">
+                    <div className="text-center">
+                      <span className="text-3xl font-bold text-green-800 dark:text-green-100 bg-green-100 dark:bg-green-800 inline-flex h-16 w-16 items-center justify-center rounded-full">
+                        {completedProblems}
+                      </span>
+                      <span className="mt-1 block text-xs sm:text-sm font-medium uppercase text-green-800 dark:text-green-100">
+                        Completed
+                      </span>
+                    </div>
+                    <div className="text-center">
+                      <span className="text-3xl font-bold text-yellow-800 dark:text-yellow-100 bg-yellow-100 dark:bg-yellow-800 inline-flex h-16 w-16 items-center justify-center rounded-full">
+                        {inProgressProblems}
+                      </span>
+                      <span className="mt-1 block text-xs sm:text-sm font-medium uppercase text-yellow-800 dark:text-yellow-100">
+                        In Progress
+                      </span>
+                    </div>
+                    <div className="text-center">
+                      <span className="text-3xl font-bold text-blue-800 dark:text-blue-50 bg-blue-50 dark:bg-blue-800 inline-flex h-16 w-16 items-center justify-center rounded-full">
+                        0
+                      </span>
+                      <span className="mt-1 block text-xs sm:text-sm font-medium uppercase text-blue-800 dark:text-blue-50">
+                        Skipped
+                      </span>
+                    </div>
+                    <div className="text-center">
+                      <span className="text-3xl font-bold text-gray-800 bg-gray-100 dark:bg-gray-800 dark:text-gray-200 inline-flex h-16 w-16 items-center justify-center rounded-full">
+                        {notStartedProblems}
+                      </span>
+                      <span className="mt-1 block text-xs sm:text-sm font-medium uppercase text-gray-800 dark:text-gray-100">
+                        Not Started
+                      </span>
+                    </div>
+                  </div>
+                  <div className="relative">
+                    <div className="flex h-4 overflow-hidden bg-gray-200 text-xs dark:bg-gray-700 rounded">
+                      <div
+                        style={{ width: `${(completedProblems / totalProblems) * 100}%` }}
+                        className="flex flex-col justify-center bg-green-500 text-center whitespace-nowrap text-white shadow-none dark:bg-green-700"
+                      />
+                      <div
+                        style={{ width: `${(inProgressProblems / totalProblems) * 100}%` }}
+                        className="flex flex-col justify-center bg-yellow-400 text-center whitespace-nowrap text-white shadow-none dark:bg-yellow-600"
+                      />
+                    </div>
+                    <div className="text-right mt-1">
+                      <span className="dark:text-dark-med-emphasis inline-block text-sm font-semibold text-gray-800">
+                        {totalProblems} total
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="text-[11px] text-slate-400 flex items-center gap-1.5">
-            <span className="text-blue-400">★</span>
-            <span>8 Interactive Stages Ready</span>
           </div>
         </div>
       </div>
 
-      {/* Curriculum Stages Grid */}
-      <div className="space-y-6">
-        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-            <span>🗺️ The 7-Stage Learning Roadmap</span>
-          </h2>
-          <span className="text-xs text-slate-500 font-mono">
-            8 Modules • 20+ Interactive Labs
-          </span>
-        </div>
+      {/* Center Dotted-Line Syllabus Tree */}
+      <div
+        id="sec-stages"
+        className="syllabus-dotted-line-container mx-auto max-w-7xl space-y-8 px-4 py-12"
+      >
+        {visibleCategories.map((cat, idx) => {
+          const catMods = cat.moduleIds.map((id) => ALLOCATOR_MODULES[id]).filter(Boolean);
+          const doneInCat = catMods.filter(
+            (m) => progress.moduleStatuses?.[m.id] === 'complete'
+          ).length;
 
-        <div className="space-y-4">
-          {stages.map((stg) => (
-            <div
-              key={stg.id}
-              className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-sm hover:shadow-md transition-all"
-            >
-              <div className="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/50">
-                <div>
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <span className="font-mono text-xs font-bold text-blue-600 dark:text-blue-400">
-                      {stg.stageNumber}
-                    </span>
-                    <span className={`text-[10px] font-bold font-mono px-2.5 py-0.5 rounded-full ${stg.badgeColor}`}>
-                      {stg.badge}
+          return (
+            <div key={idx} className="group/category flex flex-col md:flex-row">
+              {/* Left Column: Category Title, Mini Progress Bar, Description */}
+              <div className="flex-1 pr-12 md:text-right">
+                <h2 className="dark:text-dark-med-emphasis dark:group-hover/category:text-dark-high-emphasis py-3 text-2xl leading-6 font-semibold text-gray-600 transition group-hover/category:text-gray-900">
+                  {cat.categoryTitle}
+                </h2>
+                <div className="dark:text-dark-med-emphasis dark:group-hover/category:text-dark-high-emphasis py-2 leading-6 text-gray-500 transition group-hover/category:text-gray-800">
+                  <div className="inline-block align-middle">
+                    <div className="flex h-2 w-24 items-center overflow-hidden rounded-full bg-gray-200 text-xs dark:bg-gray-700">
+                      <div
+                        style={{
+                          width: `${catMods.length ? (doneInCat / catMods.length) * 100 : 0}%`,
+                        }}
+                        className="h-2 bg-green-500 dark:bg-green-600"
+                      />
+                    </div>
+                  </div>
+                  <div className="ml-2 inline-block align-middle">
+                    <span className="text-sm font-semibold">
+                      {doneInCat}/{catMods.length}
                     </span>
                   </div>
-                  <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100">
-                    {stg.name}
-                  </h3>
-                  <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 leading-relaxed max-w-3xl">
-                    {stg.description}
-                  </p>
                 </div>
-
-                <button
-                  onClick={() => onSelectTopic(stg.moduleId)}
-                  className="self-start sm:self-center px-4 py-2 text-xs font-semibold rounded-xl bg-blue-600 hover:bg-blue-500 text-white shadow-sm transition-colors whitespace-nowrap"
-                >
-                  Enter Stage ▶
-                </button>
+                <p className="dark:group-hover/category:text-dark-med-emphasis text-sm text-gray-400 transition group-hover/category:text-gray-600 md:ml-auto md:max-w-sm dark:text-gray-500">
+                  {cat.subtitle}
+                </p>
               </div>
 
-              {/* Subtopic links with clean spacing */}
-              <div className="p-4 sm:p-5 grid grid-cols-1 md:grid-cols-2 gap-2.5 text-xs">
-                {stg.units.flatMap((u) =>
-                  u.topics.map((top, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => onSelectTopic(top.moduleId, top.sectionId)}
-                      className="text-left p-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/80 text-slate-700 dark:text-slate-300 flex items-center gap-2.5 group transition-colors border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
+              {/* Right Column: Module Nodes with Center Line Circles & Frequency Dots */}
+              <div className="flex-1 pl-12 space-y-2">
+                {catMods.map((mod) => (
+                  <span
+                    key={mod.id}
+                    className={`link-with-progress-container link-with-progress-container--syllabus ${getProgressContainerClass(
+                      mod.id
+                    )}`}
+                  >
+                    <div
+                      onClick={() => onSelectTopic(mod.id)}
+                      className="link-with-progress-link link-with-progress-link--syllabus group py-3 text-xl leading-6 cursor-pointer"
                     >
-                      <span className="font-mono text-slate-400 text-[11px] group-hover:text-blue-500 font-semibold">
-                        {top.num}
-                      </span>
-                      <span className="flex-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 font-medium leading-snug">
-                        {top.title}
-                      </span>
-                      <span className="text-slate-300 dark:text-slate-700 group-hover:text-blue-500 transition-colors">
-                        →
-                      </span>
-                    </button>
-                  ))
-                )}
+                      <p className="text-gray-800 dark:text-gray-200 dark:group-hover:text-white mb-1 flex items-center transition group-hover:text-blue-700 font-medium">
+                        <span className="mr-2 inline-flex items-end">{mod.title}</span>
+                      </p>
+                      {renderFrequencyDots(mod.frequency, mod.frequencyLabel)}
+                      <p className="dark:group-hover:text-dark-high-emphasis block text-sm leading-5 text-gray-500 dark:text-gray-400 transition group-hover:text-blue-700">
+                        {mod.subtitle}
+                        <i>
+                          <br />
+                          Updated: {mod.updatedAgo}
+                        </i>
+                      </p>
+
+                      {/* Quick Section Jump Pills */}
+                      {mod.sections.length > 0 && (
+                        <div className="mt-2.5 flex flex-wrap gap-1.5">
+                          {mod.sections.map((sec) => (
+                            <button
+                              key={sec.id}
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onSelectTopic(mod.id, sec.id);
+                              }}
+                              className="rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 hover:bg-blue-100 hover:text-blue-800 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white transition cursor-pointer"
+                            >
+                              {sec.title}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </span>
+                ))}
               </div>
             </div>
-          ))}
-        </div>
+          );
+        })}
       </div>
-    </div>
+    </main>
   );
 };

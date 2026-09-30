@@ -17,34 +17,21 @@ import { SandboxView } from '@/components/modules/SandboxView';
 import { useLearner } from '@/stores/LearnerStore';
 
 export default function Home() {
-  const [activeModule, setActiveModule] = useState<ModuleId>('index');
+  const {
+    progress,
+    setCurrentStageId,
+    registerNavigator,
+    registerGlossaryOpener,
+    isDark,
+    toggleTheme,
+  } = useLearner();
+
+  const [activeModule, setActiveModule] = useState<ModuleId>(progress.currentStageId || 'index');
   const [isGlossaryOpen, setIsGlossaryOpen] = useState<boolean>(false);
   const [activeConceptId, setActiveConceptId] = useState<string | null>(null);
-  const [isDark, setIsDark] = useState<boolean>(false);
-  const { setCurrentStageId } = useLearner();
 
-  // Load saved theme preference
-  useEffect(() => {
-    const saved = localStorage.getItem('lcpp-theme');
-    if (saved === 'dark') {
-      setIsDark(true);
-      document.documentElement.setAttribute('data-theme', 'dark');
-    } else {
-      setIsDark(false);
-      document.documentElement.setAttribute('data-theme', 'light');
-    }
-  }, []);
-
-  const toggleTheme = () => {
-    const newTheme = !isDark;
-    setIsDark(newTheme);
-    const themeStr = newTheme ? 'dark' : 'light';
-    document.documentElement.setAttribute('data-theme', themeStr);
-    localStorage.setItem('lcpp-theme', themeStr);
-  };
-
-  const handleOpenConcept = (conceptId: string) => {
-    setActiveConceptId(conceptId);
+  const handleOpenConcept = (conceptId?: string) => {
+    if (conceptId) setActiveConceptId(conceptId);
     setIsGlossaryOpen(true);
   };
 
@@ -65,95 +52,36 @@ export default function Home() {
     }
   };
 
-  // Dynamic sections per module for the NAVIGATE dropdown
-  const sectionMap: Record<string, { id: string; title: string }[]> = {
-    index: [
-      { id: 'sec-stages', title: 'The 7-Stage Learning Roadmap' },
-    ],
-    'stage-0': [
-      { id: 'sec-stage0-head', title: '0.0 — Overview: The Physical Machine' },
-      { id: 'sec-stage0-bits', title: '0.1 — What is a Byte, Really?' },
-      { id: 'sec-stage0-hex', title: '0.2 — Hexadecimal Memory Addresses' },
-      { id: 'sec-stage0-wall', title: '0.3 — The Memory Wall' },
-    ],
-    'stage-1': [
-      { id: 'sec-stage1-head', title: '1.0 — Overview: The C++ Machine Model' },
-      { id: 'sec-stage1-types', title: '1.1 — Data Types are Byte Spans' },
-      { id: 'sec-stage1-pointers', title: '1.2 — Pointers Demystified: The Address Envelope' },
-      { id: 'sec-stage1-stack', title: '1.3 — The Stack: Instant Speed with Limits' },
-    ],
-    'stage-2': [
-      { id: 'sec-stage2-head', title: '2.0 — Overview: The Dynamic Heap Problem' },
-      { id: 'sec-stage2-traps', title: '2.1 — The Three Fatal Sins of Malloc' },
-      { id: 'sec-stage2-solution', title: '2.2 — Why We Build Custom Allocators' },
-    ],
-    'stage-3': [
-      { id: 'sec-p1-head', title: '3.0 — Overview: Phase 1 Arena Allocator' },
-      { id: 'sec-p1-raw', title: '3.1 — Raw Memory: std::byte[]' },
-      { id: 'sec-p1-placement', title: '3.2 — Placement new Objects' },
-      { id: 'sec-p1-destruct', title: '3.3 — Bulk Reset vs Individual Free' },
-    ],
-    'stage-4': [
-      { id: 'sec-p2-head', title: '4.0 — Overview: Phase 2 Free-List' },
-      { id: 'sec-p2-union', title: '4.1 — Zero-Overhead Embedded Union' },
-      { id: 'sec-p2-o1', title: '4.2 — O(1) Singly-Linked Mechanics' },
-    ],
-    'stage-5': [
-      { id: 'sec-p3-head', title: '5.0 — Overview: Phase 3 Variable Allocator' },
-      { id: 'sec-p3-tags', title: '5.1 — Donald Knuth Boundary Tags' },
-      { id: 'sec-p3-coalesce', title: '5.2 — Instant O(1) Neighbor Coalescing' },
-    ],
-    'stage-6': [
-      { id: 'sec-p4-head', title: '6.0 — Overview: Hardware Reality' },
-      { id: 'sec-p4-formula', title: '6.1 — 1-Clock-Cycle Alignment Formula' },
-      { id: 'sec-p4-calc', title: '6.2 — Interactive Bitwise Calculator' },
-      { id: 'sec-p4-cache', title: '6.3 — 64-Byte Cache Lines & False Sharing' },
-      { id: 'sec-p4-padding', title: '6.4 — Struct Padding & Optimization' },
-    ],
-    'stage-7': [
-      { id: 'sec-stage7-head', title: '7.0 — Overview: Systems Capstone' },
-      { id: 'sec-stage7-tail', title: '7.1 — The Tyranny of Tail Latency' },
-      { id: 'sec-stage7-matrix', title: '7.2 — 1,000,000 Ops Performance Matrix' },
-      { id: 'sec-stage7-interview', title: '7.3 — Quant Interview War Room' },
-    ],
-    sandbox: [],
-    foundations: [
-      { id: 'sec-stage0-head', title: '0.0 — The Physical Machine' },
-    ],
-    arena: [
-      { id: 'sec-p1-head', title: 'Phase 1: Linear Arena' },
-    ],
-    freelist: [
-      { id: 'sec-p2-head', title: 'Phase 2: Free-List' },
-    ],
-    variable: [
-      { id: 'sec-p3-head', title: 'Phase 3: Variable Allocator' },
-    ],
-    'bitwise-cache': [
-      { id: 'sec-p4-head', title: 'Hardware Reality' },
-    ],
-    benchmarks: [
-      { id: 'sec-stage7-matrix', title: '1,000,000 Ops Benchmarks' },
-    ],
-    interview: [
-      { id: 'sec-stage7-interview', title: 'Quant Interview War Room' },
-    ],
-  };
+  // Register global navigation and glossary opener with LearnerStore
+  useEffect(() => {
+    registerNavigator((moduleId: ModuleId, sectionId?: string) => {
+      handleSelectModule(moduleId, sectionId);
+    });
+    registerGlossaryOpener((conceptId?: string) => {
+      handleOpenConcept(conceptId);
+    });
+  }, [registerNavigator, registerGlossaryOpener]);
+
+  // Keep activeModule in sync if currentStageId changes externally
+  useEffect(() => {
+    if (progress.currentStageId && progress.currentStageId !== activeModule) {
+      setActiveModule(progress.currentStageId);
+    }
+  }, [progress.currentStageId]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950">
-      {/* Sleek Low-Level Academy Header */}
+    <div className="min-h-screen flex flex-col bg-white dark:bg-dark-surface text-gray-800 dark:text-dark-high-emphasis transition-colors duration-150">
+      {/* Top Header (Visible on course index / overview) */}
       <Header
         activeModule={activeModule}
         setActiveModule={handleSelectModule}
-        onOpenGlossary={() => setIsGlossaryOpen(true)}
-        sections={sectionMap[activeModule] || []}
+        onOpenGlossary={() => handleOpenConcept()}
         isDark={isDark}
         onToggleTheme={toggleTheme}
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 w-full pb-16">
+      <main className="flex-1 w-full">
         {activeModule === 'index' && (
           <CourseIndex onSelectTopic={handleSelectModule} />
         )}
