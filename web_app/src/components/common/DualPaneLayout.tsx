@@ -321,100 +321,104 @@ export const DualPaneLayout: React.FC<DualPaneLayoutProps> = ({
         </div>
       )}
 
-      {/* Mobile Sticky Top Header */}
-      <div className="sticky inset-x-0 top-0 z-30 flex items-center bg-white dark:bg-dark-surface pt-1 pl-1 shadow-sm border-b border-gray-200 dark:border-gray-800 lg:hidden">
+      {/* Mobile Sticky Top Header - Matched to USACO Guide Android layout */}
+      <div className="sticky inset-x-0 top-0 z-30 flex items-center justify-between bg-white dark:bg-[#121212] px-2 py-1.5 shadow-xs border-b border-gray-200 dark:border-gray-800 lg:hidden">
         <button
           onClick={() => setMobileSidebarOpen(true)}
-          className="mobile-menu-button-container inline-flex h-12 w-12 shrink-0 items-center justify-center p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white cursor-pointer"
-          aria-label="Open sidebar"
+          className="inline-flex h-10 w-10 shrink-0 items-center justify-center p-2 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white cursor-pointer rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+          aria-label="Open sidebar navigation"
         >
-          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
 
-        <div className="mr-4 ml-2 flex-1 flex items-center justify-between">
-          <div className="flex items-center space-x-2 text-xs truncate">
-            <button
-              onClick={() => handleSelectModule('index')}
-              className="text-gray-500 hover:text-gray-900 dark:text-gray-400 font-medium cursor-pointer"
-            >
-              Home
-            </button>
-            <span className="text-gray-400">/</span>
-            <span className="font-semibold text-gray-900 dark:text-white truncate">
-              {currentMeta.shortTitle || currentMeta.title}
-            </span>
-          </div>
+        <div className="flex-1 px-2 truncate text-center">
+          <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 truncate">
+            {currentMeta.shortTitle || currentMeta.title}
+          </span>
+        </div>
 
-          <div className="flex items-center space-x-2 shrink-0">
+        <div className="flex items-center gap-1 shrink-0">
+          {currentMeta.prevModule && (
             <button
-              onClick={() => setRamDrawerOpen(true)}
-              className="px-2.5 py-1 text-xs font-semibold rounded bg-blue-50 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300 cursor-pointer"
+              onClick={() => handleSelectModule(currentMeta.prevModule!)}
+              className="p-1.5 text-xs text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-white rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+              title="Previous module"
             >
-              RAM Studio
+              ◀ Prev
             </button>
-          </div>
+          )}
+          {currentMeta.nextModule && (
+            <button
+              onClick={() => handleSelectModule(currentMeta.nextModule!)}
+              className="p-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-white rounded hover:bg-blue-50 dark:hover:bg-gray-800"
+              title="Next module"
+            >
+              Next ▶
+            </button>
+          )}
+          <button
+            onClick={() => setRamDrawerOpen(true)}
+            className="ml-1 px-2 py-1 text-[11px] font-semibold rounded bg-blue-50 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300 cursor-pointer"
+            title="Open RAM Studio"
+          >
+            RAM
+          </button>
         </div>
       </div>
 
-      {/* Main 3-Column Content Flow */}
-      <main className="relative overflow-x-hidden pt-6 focus:outline-none lg:pt-4">
-        <div className="mx-auto">
-          <div className="flex justify-center">
-            {/* Column 1: Spacer for Fixed Left Sidebar */}
-            {!sidebarCollapsed && (
-              <div
-                className="order-1 hidden shrink-0 lg:block"
-                style={{ width: '20rem' }}
-                aria-hidden="true"
-              />
-            )}
-
-            {/* Column 3: Right Sticky Column (2xl screens: Table of Contents + Mini RAM Telemetry) */}
-            <div className="order-3 mt-10 mr-6 ml-8 hidden w-72 shrink-0 2xl:block">
-              <div className="sticky top-6 space-y-6">
-                {/* Table of Contents */}
-                <div>
-                  <h2 className="dark:text-dark-med-emphasis mb-3 text-xs font-bold tracking-wider text-gray-500 uppercase">
-                    Table of Contents
-                  </h2>
-                  <div className="space-y-1">
-                    {currentMeta.sections.map((sec) => (
-                      <a
-                        key={sec.id}
-                        href={`#${sec.id}`}
-                        className="block text-sm text-gray-600 hover:underline hover:text-blue-600 dark:text-dark-med-emphasis dark:hover:text-dark-high-emphasis transition"
-                      >
-                        {sec.title}
-                      </a>
-                    ))}
-                  </div>
-                </div>
-
-                <hr className="dark:border-gray-800" />
-
-                {/* Sticky Mini RAM Studio Widget */}
-                <div className="rounded-md border border-gray-200 dark:border-gray-800 p-3 bg-gray-50/60 dark:bg-[#16191f]">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
-                      <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                      Live RAM State
-                    </span>
-                    <button
-                      onClick={() => setRamDrawerOpen(true)}
-                      className="text-xs text-blue-600 hover:underline dark:text-blue-400 font-semibold cursor-pointer"
+      {/* Main Content Flow - Uses lg:pl-80 to offset fixed sidebar perfectly without overflow */}
+      <main
+        className={`relative min-h-screen pt-6 focus:outline-none lg:pt-4 transition-[padding] duration-200 ${
+          sidebarCollapsed ? 'lg:pl-0' : 'lg:pl-80'
+        }`}
+      >
+        <div className="mx-auto flex justify-center px-4 sm:px-6 lg:px-8">
+          {/* Column 3: Right Sticky Column (2xl screens: Table of Contents + Mini RAM Telemetry) */}
+          <div className="order-last mt-10 ml-8 hidden w-72 shrink-0 2xl:block">
+            <div className="sticky top-6 space-y-6">
+              {/* Table of Contents */}
+              <div>
+                <h2 className="dark:text-dark-med-emphasis mb-3 text-xs font-bold tracking-wider text-gray-500 uppercase">
+                  Table of Contents
+                </h2>
+                <div className="space-y-1">
+                  {currentMeta.sections.map((sec) => (
+                    <a
+                      key={sec.id}
+                      href={`#${sec.id}`}
+                      className="block text-sm text-gray-600 hover:underline hover:text-blue-600 dark:text-dark-med-emphasis dark:hover:text-dark-high-emphasis transition"
                     >
-                      Expand ↗
-                    </button>
-                  </div>
-                  <UniversalRamInspector />
+                      {sec.title}
+                    </a>
+                  ))}
                 </div>
               </div>
-            </div>
 
-            {/* Column 2: Center Content Column (max-w-4xl) */}
-            <div className="order-2 w-0 min-w-0 flex-1 overflow-x-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
+              <hr className="dark:border-gray-800" />
+
+              {/* Sticky Mini RAM Studio Widget */}
+              <div className="rounded-md border border-gray-200 dark:border-gray-800 p-3 bg-gray-50/60 dark:bg-[#16191f]">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                    Live RAM State
+                  </span>
+                  <button
+                    onClick={() => setRamDrawerOpen(true)}
+                    className="text-xs text-blue-600 hover:underline dark:text-blue-400 font-semibold cursor-pointer"
+                  >
+                    Expand ↗
+                  </button>
+                </div>
+                <UniversalRamInspector />
+              </div>
+            </div>
+          </div>
+
+          {/* Center Content Column (max-w-4xl) */}
+          <div className="w-full min-w-0 flex-1 max-w-4xl">
               {/* Top Desktop Breadcrumb & Prev/Next Bar */}
               <div className="hidden lg:block mb-6">
                 <div className="flex sm:justify-between items-center">
@@ -489,27 +493,27 @@ export const DualPaneLayout: React.FC<DualPaneLayoutProps> = ({
               </div>
 
               {/* Module Title Header Block */}
-              <div className="mb-6">
+              <div className="mb-8 sm:mb-10">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                   <div className="flex-1">
-                    <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900 dark:text-dark-high-emphasis">
+                    <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-gray-900 dark:text-dark-high-emphasis leading-tight break-words">
                       {currentMeta.title}
                     </h1>
-                    <p className="mt-1 text-sm text-gray-500 dark:text-dark-med-emphasis">
+                    <p className="mt-1.5 text-xs sm:text-sm text-gray-500 dark:text-dark-med-emphasis">
                       Authors: {currentMeta.authors}
                       {currentMeta.contributors ? ` · ${currentMeta.contributors}` : ''}
                     </p>
-                    <p className="mt-2 text-sm italic text-gray-600 dark:text-gray-300">
+                    <p className="mt-2.5 text-xs sm:text-sm italic text-gray-600 dark:text-gray-300 leading-relaxed">
                       {currentMeta.subtitle}
                     </p>
                   </div>
 
                   {/* Module Status Dropdown */}
-                  <div className="relative shrink-0">
+                  <div className="relative shrink-0 self-start sm:self-auto">
                     <button
                       type="button"
                       onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
-                      className={`inline-flex items-center rounded-md border border-gray-300 dark:border-gray-700 px-4 py-2 text-sm font-medium transition cursor-pointer ${currentStatusBadge.badgeClass}`}
+                      className={`inline-flex items-center rounded-md border border-gray-300 dark:border-gray-700 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition cursor-pointer ${currentStatusBadge.badgeClass}`}
                     >
                       <span>{currentStatusBadge.label}</span>
                       <svg className="ml-2 h-4 w-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
@@ -541,7 +545,7 @@ export const DualPaneLayout: React.FC<DualPaneLayoutProps> = ({
                 </div>
 
                 {/* Dark Navy Action Bar */}
-                <div className="mt-4 flex items-center justify-between rounded-md bg-gray-100 px-4 py-2.5 text-xs text-gray-700 dark:bg-[#111827] dark:text-gray-300 border border-gray-200 dark:border-gray-800">
+                <div className="mt-5 flex flex-wrap items-center justify-between gap-2.5 rounded-lg bg-gray-100 px-4 py-2.5 text-xs text-gray-700 dark:bg-[#111827] dark:text-gray-300 border border-gray-200 dark:border-gray-800">
                   <div className="flex items-center space-x-2">
                     <span className="font-semibold">Language:</span>
                     <span className="font-mono text-blue-600 dark:text-blue-400 font-bold">C++20</span>
@@ -558,11 +562,11 @@ export const DualPaneLayout: React.FC<DualPaneLayoutProps> = ({
               </div>
 
               {/* Inline Table of Contents on < 2xl screens */}
-              <div className="2xl:hidden mb-6">
-                <h2 className="dark:text-dark-high-emphasis mt-6 mb-2 font-bold tracking-wider text-gray-500 uppercase text-xs">
+              <div className="2xl:hidden mb-8">
+                <h2 className="dark:text-dark-high-emphasis mt-6 mb-2.5 font-bold tracking-wider text-gray-500 uppercase text-xs">
                   Table of Contents
                 </h2>
-                <div className="space-y-1">
+                <div className="space-y-1.5">
                   {currentMeta.sections.map((sec) => (
                     <a
                       key={sec.id}
@@ -578,8 +582,8 @@ export const DualPaneLayout: React.FC<DualPaneLayoutProps> = ({
 
               {/* Purple Resources Table */}
               {currentMeta.resources?.length > 0 && (
-                <div className="mb-8 overflow-hidden rounded-lg border border-gray-200 shadow-sm dark:border-gray-800">
-                  <table className="min-w-full text-sm">
+                <div className="mb-10 sm:mb-12 overflow-x-auto rounded-lg border border-gray-200 shadow-xs dark:border-gray-800">
+                  <table className="min-w-[480px] sm:min-w-full text-sm">
                     <thead>
                       <tr>
                         <th
@@ -643,7 +647,7 @@ export const DualPaneLayout: React.FC<DualPaneLayoutProps> = ({
               )}
 
               {/* Interactive Architecture Flow Diagram */}
-              <div id={`sec-${activeStageId}-flow`}>
+              <div id={`sec-${activeStageId}-flow`} className="my-8 sm:my-10">
                 <ArchitectureFlowDiagram stageId={activeStageId} />
               </div>
 
@@ -651,7 +655,7 @@ export const DualPaneLayout: React.FC<DualPaneLayoutProps> = ({
               <div className="markdown">{children}</div>
 
               {/* Inline Interactive RAM Studio & Controls Card */}
-              <div className="my-8 rounded-lg border border-gray-200 dark:border-gray-800 p-5 bg-gray-50/70 dark:bg-[#16191f] shadow-sm">
+              <div className="my-10 sm:my-12 rounded-xl border border-gray-200 dark:border-gray-800 p-6 sm:p-7 bg-gray-50/70 dark:bg-[#16191f] shadow-xs">
                 <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 pb-3 mb-4">
                   <div className="flex items-center gap-2">
                     <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -710,16 +714,16 @@ export const DualPaneLayout: React.FC<DualPaneLayoutProps> = ({
               </div>
 
               {/* Bottom Module Progress Bar */}
-              <div className="my-10 border-t border-b border-gray-200 dark:border-gray-800 py-8 text-center">
+              <div className="my-12 sm:my-14 border-t border-b border-gray-200 dark:border-gray-800 py-9 text-center">
                 <div className="text-base font-semibold text-gray-800 dark:text-dark-high-emphasis mb-3">
                   Module Progress:
                 </div>
-                <div className="inline-flex rounded-md shadow-sm">
+                <div className="inline-flex flex-wrap justify-center gap-1.5 rounded-md sm:shadow-xs">
                   {statusOptions.map((opt) => (
                     <button
                       key={opt.id}
                       onClick={() => setModuleStatus(activeStageId, opt.id)}
-                      className={`px-4 py-2 text-xs font-semibold first:rounded-l-md last:rounded-r-md border border-gray-300 dark:border-gray-700 transition cursor-pointer ${
+                      className={`px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs font-semibold rounded-md sm:rounded-none sm:first:rounded-l-md sm:last:rounded-r-md border border-gray-300 dark:border-gray-700 transition cursor-pointer ${
                         currentStatus === opt.id
                           ? 'bg-blue-600 text-white border-blue-600'
                           : 'bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
@@ -732,7 +736,7 @@ export const DualPaneLayout: React.FC<DualPaneLayoutProps> = ({
               </div>
 
               {/* Gray CTA Box */}
-              <div className="my-8 rounded-lg bg-gray-50 p-5 sm:p-6 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
+              <div className="my-10 sm:my-12 rounded-xl bg-gray-50 p-6 sm:p-7 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
                 <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1">
                   Ready to test your low-level allocator in code?
                 </h3>
@@ -792,8 +796,7 @@ export const DualPaneLayout: React.FC<DualPaneLayoutProps> = ({
               </div>
             </div>
           </div>
-        </div>
-      </main>
+        </main>
 
       {/* Slide-Over RAM Studio Drawer (available on all viewports) */}
       {ramDrawerOpen && (

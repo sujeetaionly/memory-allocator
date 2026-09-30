@@ -121,9 +121,10 @@ export const UniversalRamInspector: React.FC = () => {
       </div>
 
       {/* Spacious Memory Matrix with Pixel-Perfect Alignment */}
-      <div className="space-y-1.5 bg-slate-50/70 dark:bg-slate-950/40 p-2.5 sm:p-3 rounded-xl border border-slate-100 dark:border-slate-800/80">
-        {/* Column Headers with exact flex container matching rows */}
-        <div className="flex items-center gap-2 text-[10px] font-mono text-center text-slate-400 select-none pb-1">
+      <div className="overflow-x-auto space-y-1.5 bg-slate-50/70 dark:bg-slate-950/40 p-2 sm:p-3 rounded-lg border border-slate-100 dark:border-slate-800/80">
+        <div className="min-w-[300px]">
+          {/* Column Headers with exact flex container matching rows */}
+          <div className="flex items-center gap-2 text-[10px] font-mono text-center text-slate-400 select-none pb-1">
           <span className="w-10 select-none text-right shrink-0"></span>
           <div
             className={`grid gap-1.5 flex-1 ${
@@ -206,6 +207,7 @@ export const UniversalRamInspector: React.FC = () => {
             </div>
           );
         })}
+        </div>
       </div>
 
       {/* Memory Color Legend */}

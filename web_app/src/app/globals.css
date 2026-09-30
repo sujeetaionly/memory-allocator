@@ -252,7 +252,7 @@ html[data-theme="dark"] body {
    ============================================================================ */
 .markdown,
 .lesson-article {
-  line-height: 1.625;
+  line-height: 1.75;
   overflow-wrap: break-word;
   color: #374151;
 }
@@ -268,19 +268,19 @@ html[data-theme="dark"] body {
 }
 
 .lesson-section {
-  margin-top: 2.5rem;
-  margin-bottom: 2rem;
+  margin-top: 3.5rem;
+  margin-bottom: 2.5rem;
 }
 
 .markdown h2,
 .lesson-section h2 {
   position: relative;
-  margin-top: 3rem;
+  margin-top: 3.5rem;
   margin-bottom: 1.25rem;
-  font-size: 1.875rem;
-  line-height: 1.25;
+  font-size: 1.75rem;
+  line-height: 1.3;
   font-weight: 700;
-  color: #374151;
+  color: #1f2937;
   letter-spacing: -0.015em;
 }
 
@@ -308,8 +308,8 @@ html[data-theme="dark"] body {
 
 .markdown h3,
 .lesson-section h3 {
-  margin-top: 1.5rem;
-  margin-bottom: 0.75rem;
+  margin-top: 2.25rem;
+  margin-bottom: 1rem;
   font-size: 1.25rem;
   line-height: 1.4;
   font-weight: 600;
@@ -325,9 +325,9 @@ html[data-theme="dark"] body {
 .prose {
   font-family: var(--font-sans);
   font-size: 1rem;
-  line-height: 1.65;
+  line-height: 1.75;
   color: #374151;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
 }
 
 .dark .markdown p,
@@ -392,4 +392,131 @@ html[data-theme="dark"] body {
 
 .animate-fadeIn {
   animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Static C++ Code Blocks & Syntax Tokens */
+.code-block-wrapper {
+  background-color: #0d1117;
+  border: 1px solid #21262d;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  margin: 1.75rem 0;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2);
+}
+
+html:not(.dark) .code-block-wrapper {
+  background-color: #f8fafc;
+  border-color: #e2e8f0;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+}
+
+.code-block-header {
+  background-color: #161b22;
+  border-bottom: 1px solid #21262d;
+  padding: 0.5rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+html:not(.dark) .code-block-header {
+  background-color: #f1f5f9;
+  border-bottom-color: #e2e8f0;
+}
+
+.cb-filename {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #8b949e;
+}
+
+html:not(.dark) .cb-filename {
+  color: #475569;
+}
+
+.lcpp-code-box {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  overflow-x: auto;
+  padding: 0.625rem 0;
+}
+
+.code-row {
+  display: block;
+}
+
+.code-line {
+  padding: 0.2rem 1rem;
+  display: flex;
+  align-items: baseline;
+  white-space: pre;
+  color: #c9d1d9;
+  font-family: var(--font-mono);
+}
+
+html:not(.dark) .code-line {
+  color: #1e293b;
+}
+
+.code-line .ln {
+  display: inline-block;
+  width: 2rem;
+  min-width: 2rem;
+  text-align: right;
+  padding-right: 0.75rem;
+  margin-right: 0.75rem;
+  border-right: 1px solid #30363d;
+  color: #6e7681;
+  user-select: none;
+}
+
+html:not(.dark) .code-line .ln {
+  border-right-color: #cbd5e1;
+  color: #94a3b8;
+}
+
+/* Syntax Highlighting */
+.tok-keyword {
+  color: #79c0ff;
+  font-weight: 600;
+}
+html:not(.dark) .tok-keyword {
+  color: #0284c7;
+  font-weight: 600;
+}
+
+.tok-type {
+  color: #7ee787;
+  font-weight: 600;
+}
+html:not(.dark) .tok-type {
+  color: #059669;
+  font-weight: 600;
+}
+
+.tok-number {
+  color: #f2cc60;
+}
+html:not(.dark) .tok-number {
+  color: #d97706;
+}
+
+.tok-string {
+  color: #ff7b72;
+}
+html:not(.dark) .tok-string {
+  color: #e11d48;
+}
+
+.tok-comment {
+  color: #8b949e;
+  font-style: italic;
+}
+html:not(.dark) .tok-comment {
+  color: #6b7280;
+  font-style: italic;
 }

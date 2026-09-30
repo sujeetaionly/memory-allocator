@@ -59,9 +59,9 @@ export const CppCodeStepper: React.FC<CppCodeStepperProps> = ({
   };
 
   return (
-    <div className="my-6 bg-slate-950 border border-slate-800 rounded-2xl overflow-hidden shadow-lg text-slate-100 transition-all">
+    <div className="my-8 sm:my-10 bg-slate-950 border border-slate-800 rounded-2xl overflow-hidden shadow-lg text-slate-100 transition-all">
       {/* Code Studio Header */}
-      <div className="bg-slate-900/90 px-4 sm:px-5 py-3 flex items-center justify-between border-b border-slate-800/80">
+      <div className="bg-slate-900/90 px-4 sm:px-6 py-3.5 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 border-b border-slate-800/80">
         <div className="flex items-center space-x-2">
           <span className="w-2.5 h-2.5 rounded-full bg-red-500/80 inline-block"></span>
           <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/80 inline-block"></span>
@@ -76,24 +76,24 @@ export const CppCodeStepper: React.FC<CppCodeStepperProps> = ({
           <button
             onClick={handlePrev}
             disabled={currentStepIndex === 0}
-            className="px-2.5 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed text-slate-300 font-mono transition-colors"
+            className="px-2.5 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed text-slate-300 font-mono transition-colors cursor-pointer"
           >
             ◀ Prev
           </button>
-          <span className="font-mono text-xs text-blue-400 px-1 font-semibold">
+          <span className="font-mono text-xs text-blue-400 px-1.5 font-semibold">
             {currentStepIndex + 1} / {steps.length}
           </span>
           <button
             onClick={handleNext}
             disabled={currentStepIndex === steps.length - 1}
-            className="px-3.5 py-1 text-xs rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-30 disabled:cursor-not-allowed text-white font-semibold flex items-center gap-1.5 shadow-sm transition-all"
+            className="px-3.5 py-1 text-xs rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-30 disabled:cursor-not-allowed text-white font-semibold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
           >
             <span>Next Line</span>
             <span>▶</span>
           </button>
           <button
             onClick={handleReset}
-            className="px-2 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 font-mono transition-colors"
+            className="px-2.5 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 font-mono transition-colors cursor-pointer"
             title="Reset code execution"
           >
             ↺
@@ -102,13 +102,13 @@ export const CppCodeStepper: React.FC<CppCodeStepperProps> = ({
       </div>
 
       {/* Code Listing with Active Line Indicator */}
-      <div className="p-3 sm:p-4 font-mono text-xs sm:text-[13px] overflow-x-auto space-y-1 bg-slate-950">
+      <div className="p-4 sm:p-5 font-mono text-xs sm:text-[13px] overflow-x-auto space-y-1 bg-slate-950">
         {steps.map((st, idx) => {
           const isActive = idx === currentStepIndex;
           return (
             <div
               key={idx}
-              className={`flex items-center px-3 py-1.5 rounded-lg transition-all ${
+              className={`flex items-center px-3.5 py-2 rounded-lg transition-all ${
                 isActive
                   ? 'bg-blue-600/20 border-l-4 border-blue-500 text-white font-semibold shadow-xs'
                   : 'text-slate-400 hover:bg-slate-900/50'
@@ -127,8 +127,8 @@ export const CppCodeStepper: React.FC<CppCodeStepperProps> = ({
       </div>
 
       {/* Synchronized Explanation Drawer */}
-      <div className="bg-slate-900/70 p-4 sm:p-5 border-t border-slate-800 space-y-2.5 text-xs">
-        <div className="flex items-start gap-2.5">
+      <div className="bg-slate-900/70 p-5 sm:p-6 border-t border-slate-800 space-y-3 text-xs">
+        <div className="flex items-start gap-3">
           <span className="px-2 py-0.5 rounded-md bg-blue-500/20 text-blue-300 font-mono text-[10px] font-bold tracking-wider uppercase mt-0.5 whitespace-nowrap">
             C++ MEANING
           </span>
@@ -137,7 +137,7 @@ export const CppCodeStepper: React.FC<CppCodeStepperProps> = ({
           </span>
         </div>
 
-        <div className="flex items-start gap-2.5 pt-2 border-t border-slate-800/60">
+        <div className="flex items-start gap-3 pt-2.5 border-t border-slate-800/60">
           <span className="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 font-mono text-[10px] font-bold tracking-wider uppercase mt-0.5 whitespace-nowrap">
             HARDWARE REALITY
           </span>

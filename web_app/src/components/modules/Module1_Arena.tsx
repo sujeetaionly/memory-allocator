@@ -212,7 +212,7 @@ export const Module1_Arena: React.FC<Module1Props> = ({
           <section id="sec-p1-destruct" className="lesson-section">
             <h2>3.3 — The Arena Tradeoff: Bulk Reset vs Individual Free</h2>
             <p className="prose">
-              The Linear Arena Allocator achieves its 42x speedup because it **does not support freeing individual objects**. You cannot delete an object in the middle of the buffer.
+              The Linear Arena Allocator achieves its 42x speedup because it <strong>does not support freeing individual objects</strong>. You cannot delete an object in the middle of the buffer.
             </p>
             <p className="prose">
               Instead, you allocate continuously throughout a processing cycle (such as handling a single network packet or rendering a single video frame), and then reset the entire arena at once with <code className="code-pill">offset = 0</code>.

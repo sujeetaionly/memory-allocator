@@ -9,6 +9,21 @@ interface MicroChallengeProps {
   onSuccess?: () => void;
 }
 
+const renderFormattedText = (text: string) => {
+  if (!text || !text.includes('`')) return text;
+  const parts = text.split(/(`[^`]+`)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('`') && part.endsWith('`')) {
+      return (
+        <code key={i} className="code-pill text-[11px] sm:text-xs">
+          {part.slice(1, -1)}
+        </code>
+      );
+    }
+    return part;
+  });
+};
+
 export const MicroChallengeEngine: React.FC<MicroChallengeProps> = ({
   challenge,
   onSuccess,
@@ -63,10 +78,10 @@ export const MicroChallengeEngine: React.FC<MicroChallengeProps> = ({
       {/* Scenario & Question Prompt */}
       <div className="space-y-2">
         <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-          {challenge.scenario}
+          {renderFormattedText(challenge.scenario)}
         </p>
         <p className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">
-          {challenge.question}
+          {renderFormattedText(challenge.question)}
         </p>
       </div>
 
@@ -97,7 +112,7 @@ export const MicroChallengeEngine: React.FC<MicroChallengeProps> = ({
               >
                 {String.fromCharCode(65 + idx)}
               </span>
-              <span className="flex-1 leading-snug">{opt}</span>
+              <span className="flex-1 leading-snug">{renderFormattedText(opt)}</span>
             </button>
           );
         })}
@@ -117,7 +132,7 @@ export const MicroChallengeEngine: React.FC<MicroChallengeProps> = ({
 
       {showHint && !showFeedback && (
         <div className="text-xs p-3.5 rounded-xl bg-amber-50/80 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200 border border-amber-200 dark:border-amber-800 animate-fadeIn leading-relaxed">
-          💡 <strong>Hint:</strong> {challenge.hint}
+          💡 <strong>Hint:</strong> {renderFormattedText(challenge.hint)}
         </div>
       )}
 
@@ -143,7 +158,7 @@ export const MicroChallengeEngine: React.FC<MicroChallengeProps> = ({
               </>
             )}
           </div>
-          <p className="leading-relaxed opacity-95 pl-6">{challenge.explanation}</p>
+          <p className="leading-relaxed opacity-95 pl-6">{renderFormattedText(challenge.explanation)}</p>
         </div>
       )}
     </div>

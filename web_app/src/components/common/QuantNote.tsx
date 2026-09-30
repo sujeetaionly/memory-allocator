@@ -81,9 +81,9 @@ export const QuantNote: React.FC<QuantNoteProps> = ({
   }[type];
 
   return (
-    <div className={`my-5 rounded-md p-4 ${configs.container}`}>
+    <div className={`my-7 sm:my-8 rounded-lg p-5 sm:p-6 shadow-xs border border-black/5 dark:border-white/5 ${configs.container}`}>
       <div className="flex items-start">
-        <div className="shrink-0">
+        <div className="shrink-0 mt-0.5">
           <svg
             className={`h-5 w-5 ${configs.iconColor}`}
             viewBox="0 0 20 20"
@@ -93,11 +93,11 @@ export const QuantNote: React.FC<QuantNoteProps> = ({
             {configs.icon}
           </svg>
         </div>
-        <div className="ml-3 flex-1">
-          <div className={`text-sm leading-5 font-medium ${configs.titleColor}`}>
+        <div className="ml-3.5 flex-1">
+          <div className={`text-sm leading-snug font-bold ${configs.titleColor}`}>
             {configs.prefix}: {title || configs.defaultTitle}
           </div>
-          <div className={`mt-2 text-sm leading-6 ${configs.bodyColor}`}>
+          <div className={`mt-2.5 text-sm leading-relaxed ${configs.bodyColor}`}>
             {children}
           </div>
         </div>

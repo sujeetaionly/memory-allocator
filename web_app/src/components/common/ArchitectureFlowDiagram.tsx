@@ -15,283 +15,360 @@ export const ArchitectureFlowDiagram: React.FC<ArchitectureFlowDiagramProps> = (
     {
       title: string;
       subtitle: string;
-      nodes: { label: string; sub: string; latency: string; color: string; detail: string }[];
+      busWidth: string;
+      nodes: {
+        layer: string;
+        spec: string;
+        latency: string;
+        cycles: string;
+        impact: string;
+        architectureDetail: string;
+      }[];
     }
   > = {
     'stage-0': {
-      title: 'Architecture Flow: The CPU Cache Hierarchy & Memory Wall',
-      subtitle: 'Click any hardware tier in the pipeline to inspect access latency and bandwidth.',
+      title: 'Memory Subsystem & Latency Wall',
+      subtitle: 'Physical distance and bus clock penalties across the memory hierarchy',
+      busWidth: '64-bit Core Bus · 64-Byte Cache Line Line-Fill',
       nodes: [
         {
-          label: 'CPU Core Registers',
-          sub: 'RAX, RBX, RSP (64-bit)',
-          latency: '0.25 ns (1 cycle)',
-          color: 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-200',
-          detail: 'Zero bus traversal. Immediate ALU execution inside the silicon core.',
+          layer: 'CPU Core Registers',
+          spec: 'RAX, RBX, RSP (64-bit)',
+          latency: '0.25 ns',
+          cycles: '1 cycle',
+          impact: 'Instantaneous ALU execution',
+          architectureDetail: 'Direct flip-flops inside the execution unit. Zero bus traversal penalty. Capacity limited to ~16 general-purpose 64-bit registers.',
         },
         {
-          label: 'L1 Data Cache',
-          sub: '32 KB — 64B Cache Lines',
-          latency: '1.0 ns (4 cycles)',
-          color: 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 text-blue-800 dark:text-blue-200',
-          detail: 'Hardware prefetcher loads 64 contiguous bytes at a time into L1 SRAM.',
+          layer: 'L1 Data Cache',
+          spec: '32 KB SRAM · 8-way Assoc',
+          latency: '1.0 ns',
+          cycles: '4 cycles',
+          impact: 'Optimal hot allocator working set',
+          architectureDetail: 'Hardware line-fill loads 64 contiguous bytes at a time. All pointer operations and bump-allocation pointers remain pinned here.',
         },
         {
-          label: 'L2 / L3 Shared Cache',
-          sub: '512 KB – 32 MB SRAM',
-          latency: '4 – 14 ns (16-50 cycles)',
-          color: 'border-amber-500 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-200',
-          detail: 'Shared across cores via ring/mesh interconnect; subject to MESI cache coherency.',
+          layer: 'L2 / L3 Unified Cache',
+          spec: '512 KB – 32 MB SRAM',
+          latency: '4 – 14 ns',
+          cycles: '14 – 40 cycles',
+          impact: 'Shared inter-core mesh boundary',
+          architectureDetail: 'Shared across CPU cores via ring/mesh interconnect. Subject to MESI/MOESI cache invalidation traffic and core contention.',
         },
         {
-          label: 'Main Physical DRAM',
-          sub: 'Capacitor Array (0x00..0xFFFFFFFF)',
-          latency: '80 – 100 ns (350+ cycles)',
-          color: 'border-rose-500 bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-200',
-          detail: 'The Memory Wall: A cache miss stalls the CPU for ratusan of instruction opportunities.',
+          layer: 'Main Physical DRAM',
+          spec: 'Capacitive Matrix (DDR4/5)',
+          latency: '80 – 100 ns',
+          cycles: '300 – 400 cycles',
+          impact: 'The Memory Wall (CPU stall)',
+          architectureDetail: 'DRAM access requires electrical row precharge, RAS-to-CAS delay, and memory bus arbitration. Stalls the out-of-order CPU pipeline.',
         },
       ],
     },
     'stage-1': {
-      title: 'Architecture Flow: C++ Pointer Indirection & Stack Frame Layout',
-      subtitle: 'How a 64-bit pointer variable stores the hexadecimal address of target payload bytes.',
+      title: 'C++ Machine Model: Pointer Address Envelope',
+      subtitle: 'Contiguous byte span mapping and 64-bit indirect address resolution',
+      busWidth: '64-bit Flat Virtual Address Space · LP64 Architecture Model',
       nodes: [
         {
-          label: 'int price = 105;',
-          sub: 'Address 0x00..0x03 (4 Bytes)',
-          latency: 'Little-Endian: 69 00 00 00',
-          color: 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 text-blue-800 dark:text-blue-200',
-          detail: 'Occupies 4 contiguous byte lockers starting at base address 0x00.',
+          layer: 'Payload Variable',
+          spec: 'int price = 105 (4 Bytes)',
+          latency: 'Locker 0x00..0x03',
+          cycles: 'Direct Value',
+          impact: 'Little-Endian: 69 00 00 00',
+          architectureDetail: 'Data types in C++ are raw contiguous byte ranges. An int on 64-bit x86 occupies 4 consecutive addresses starting at offset 0x00.',
         },
         {
-          label: 'int* ptr = &price;',
-          sub: 'Address 0x08..0x0F (8 Bytes)',
-          latency: 'Stores Value: 0x00',
-          color: 'border-purple-500 bg-purple-50 dark:bg-purple-950/40 text-purple-800 dark:text-purple-200',
-          detail: 'The pointer itself is an 8-byte variable holding the target address (0x00).',
+          layer: 'Address-Of (&)',
+          spec: 'uintptr_t = 0x00000000',
+          latency: 'Physical Offset',
+          cycles: 'LEA instruction',
+          impact: 'Extracts memory locker index',
+          architectureDetail: 'The & operator queries the memory management unit for the base hexadecimal address where the variable starts.',
         },
         {
-          label: '*ptr = 250;',
-          sub: 'Dereference Operator (*)',
-          latency: 'MOV [RAX], 250',
-          color: 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-200',
-          detail: 'CPU reads address 0x00 from ptr, jumps to locker 0x00, and overwrites it with 0xFA.',
+          layer: 'Pointer Variable',
+          spec: 'int* ptr = &price (8 Bytes)',
+          latency: 'Locker 0x08..0x0F',
+          cycles: 'Stores 0x00',
+          impact: 'Pointer is an 8-byte envelope',
+          architectureDetail: 'A pointer is itself a normal variable stored in RAM or registers. Its value happens to be the memory address of another object.',
+        },
+        {
+          layer: 'Dereference (*)',
+          spec: '*ptr = 250 (MOV [0x00], 0xFA)',
+          latency: '0.25 ns',
+          cycles: '1 Indirection',
+          impact: 'Direct byte locker mutation',
+          architectureDetail: 'The CPU reads the address stored inside ptr (0x00), navigates to that locker, and overwrites the contents with 250 (hex 0xFA).',
         },
       ],
     },
     'stage-2': {
-      title: 'Architecture Flow: Standard std::malloc vs Custom User-Space Allocator',
-      subtitle: 'Comparing the 500-cycle OS Heap Path against the 1-cycle Custom Pool Path.',
+      title: 'The Heap Problem: OS Syscall vs Custom Allocator',
+      subtitle: 'Why general-purpose heap allocators destroy high-throughput latency predictability',
+      busWidth: 'System Call Context Switch Boundary & Global Thread Arena Mutex',
       nodes: [
         {
-          label: 'Application Request',
-          sub: 'new Order(101)',
-          latency: 'Entry Point',
-          color: 'border-gray-500 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-200',
-          detail: 'Trading strategy requests 24 bytes for a new limit order.',
+          layer: 'Global Mutex Lock',
+          spec: 'pthread_mutex_lock()',
+          latency: '+40 – 120 ns',
+          cycles: 'Thread Stall',
+          impact: 'Serialization of concurrent threads',
+          architectureDetail: 'Standard std::malloc uses multi-threaded arena mutexes. Thread contention creates unpredictable P99 tail latency spikes.',
         },
         {
-          label: 'Global Heap Mutex',
-          sub: 'pthread_mutex_lock',
-          latency: '+40–120 cycles',
-          color: 'border-amber-500 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-200',
-          detail: 'Threads stall waiting for global arena lock in multi-threaded execution.',
+          layer: 'Kernel Syscall',
+          spec: 'mmap() / sbrk() OS traps',
+          latency: '+800 – 2500 ns',
+          cycles: 'Ring 3 → Ring 0',
+          impact: 'Flushes CPU TLB & caches',
+          architectureDetail: 'When the heap runs out of virtual pages, the OS kernel must service page faults, modifying page tables and dropping cache lines.',
         },
         {
-          label: 'Free-Bin Tree Search',
-          sub: 'Best-Fit / Red-Black Walk',
-          latency: '+80–250 cycles',
-          color: 'border-orange-500 bg-orange-50 dark:bg-orange-950/40 text-orange-800 dark:text-orange-200',
-          detail: 'Chasing scattered pointers across fragmented heap pages triggers L3 cache misses.',
+          layer: 'Metadata Overhead',
+          spec: '8B–16B Header per chunk',
+          latency: 'Heap Bloat',
+          cycles: 'Internal Frac',
+          impact: 'Destroys cache line locality',
+          architectureDetail: 'Every malloc chunk prefixes a size header and boundary tags. Thousands of small allocations fragment memory and thrash L1 caches.',
         },
         {
-          label: 'Ring-0 Kernel Syscall',
-          sub: 'brk() / mmap()',
-          latency: '+1,000+ cycles',
-          color: 'border-rose-500 bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-200',
-          detail: 'Context switch into OS kernel flushes TLB and stalls instruction pipeline.',
+          layer: 'Custom Allocator',
+          spec: '1-Cycle User-Space Pointer',
+          latency: '< 1.5 ns',
+          cycles: '1 – 3 cycles',
+          impact: 'Predictable P99.99 execution',
+          architectureDetail: 'Pre-allocates a contiguous memory pool. Allocations require only a single pointer increment without locks or system calls.',
         },
       ],
     },
     'stage-3': {
-      title: 'Architecture Flow: Phase 1 Linear Arena (Bump Pointer) Engine',
-      subtitle: '42.04x Faster than std::malloc — 1 CPU Clock Cycle Allocation.',
+      title: 'Phase 1: Linear Bump Allocator Architecture',
+      subtitle: 'Sequential pointer increment inside a pre-reserved contiguous std::byte span',
+      busWidth: '1-Cycle Bump Arithmetic · Zero Metadata Headers per Object',
       nodes: [
         {
-          label: 'Pre-Allocate Arena',
-          sub: 'std::byte buf[64]',
-          latency: 'Startup Only',
-          color: 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 text-blue-800 dark:text-blue-200',
-          detail: 'Reserve contiguous aligned buffer once at startup; zero runtime syscalls.',
+          layer: 'Raw Buffer Pool',
+          spec: 'alignas(64) std::byte[64]',
+          latency: 'Static Memory',
+          cycles: 'Pre-reserved',
+          impact: 'Zero runtime OS allocation',
+          architectureDetail: 'Contiguous buffer pre-allocated on stack or static memory. Guarantees 100% spatial locality for all sequential objects.',
         },
         {
-          label: 'Bitwise Align Offset',
-          sub: '(offset + A - 1) & ~(A - 1)',
-          latency: '1 ALU Cycle',
-          color: 'border-purple-500 bg-purple-50 dark:bg-purple-950/40 text-purple-800 dark:text-purple-200',
-          detail: 'Round bump pointer up to 8-byte or 64-byte hardware boundary without division.',
+          layer: 'Alignment Offset',
+          spec: '(offset + align - 1) & ~(align - 1)',
+          latency: '1 cycle',
+          cycles: 'Bitwise AND',
+          impact: 'Zero branching alignment math',
+          architectureDetail: 'Calculates the next natural hardware boundary in 1 clock cycle using power-of-two bitwise logic without division instructions.',
         },
         {
-          label: 'Bump Cursor & Placement new',
-          sub: 'offset += sizeof(T)',
-          latency: '0.25 ns (add rbx, 24)',
-          color: 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-200',
-          detail: 'Construct object in-place at (buf + offset) and advance integer offset.',
+          layer: 'Bump Pointer',
+          spec: 'offset += requested_bytes',
+          latency: '0.25 ns',
+          cycles: '1 cycle',
+          impact: '42.04x faster than std::malloc',
+          architectureDetail: 'Returns old offset as void*, moves cursor forward. No headers, no free-lists, no fragmentation checks.',
         },
         {
-          label: 'O(1) Bulk Reset',
-          sub: 'offset = 0;',
-          latency: '1 Cycle Reclaim',
-          color: 'border-cyan-500 bg-cyan-50 dark:bg-cyan-950/40 text-cyan-800 dark:text-cyan-200',
-          detail: 'Reclaim the entire arena simultaneously at end of packet/frame.',
+          layer: 'Bulk Arena Reset',
+          spec: 'offset = 0',
+          latency: '0.25 ns',
+          cycles: '1 cycle',
+          impact: 'Reclaims all bytes instantly',
+          architectureDetail: 'Individual frees are no-ops. After processing a packet or frame, resetting the single integer cursor frees every allocated object.',
         },
       ],
     },
     'stage-4': {
-      title: 'Architecture Flow: Phase 2 Intrusive Free-List (Zero Metadata Overhead)',
-      subtitle: '125.7x Faster than std::malloc — O(1) Pop to Allocate, O(1) Push to Recycle.',
+      title: 'Phase 2: Intrusive Free-List Architecture',
+      subtitle: 'Reusing unallocated payload memory as singly-linked pointer nodes',
+      busWidth: 'Zero Memory Overhead per Free Node · O(1) Push and Pop',
       nodes: [
         {
-          label: 'Union Slot (When Free)',
-          sub: 'Node* next @ 0x00..0x07',
+          layer: 'Embedded Node Union',
+          spec: 'union { Node* next; byte data[N]; }',
           latency: '0 Bytes Overhead',
-          color: 'border-teal-500 bg-teal-50 dark:bg-teal-950/40 text-teal-800 dark:text-teal-200',
-          detail: 'While unallocated, the first 8 bytes of the slot store the pointer to the next free slot.',
+          cycles: 'Dual Representation',
+          impact: 'Zero metadata memory tax',
+          architectureDetail: 'When free, the chunk stores an 8-byte pointer to the next free cell. When allocated, user data safely overwrites the pointer.',
         },
         {
-          label: 'allocate() -> O(1) Pop',
-          sub: 'head = head->next',
-          latency: '0.87 ms / 1M ops',
-          color: 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-200',
-          detail: 'Pop the top slot from free_head in 2 assembly instructions.',
+          layer: 'Allocate Pop O(1)',
+          spec: 'head = head->next',
+          latency: '0.87 ns',
+          cycles: '2 – 3 cycles',
+          impact: '125.7x faster than std::malloc',
+          architectureDetail: 'Pops top node from free list, updates head pointer to next node, and returns the chunk pointer immediately.',
         },
         {
-          label: 'Union Slot (When Live)',
-          sub: 'Order payload overwrites next*',
-          latency: '100% Payload Density',
-          color: 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 text-blue-800 dark:text-blue-200',
-          detail: 'Constructed Order object uses all 16/24 bytes of the slot with zero header waste.',
+          layer: 'Recycle Push O(1)',
+          spec: 'node->next = head; head = node;',
+          latency: '0.87 ns',
+          cycles: '2 – 3 cycles',
+          impact: 'Instant chunk reuse',
+          architectureDetail: 'Freeing prepends the chunk back to the top of the stack. Requires zero scanning, zero table lookups, and zero OS intervention.',
         },
         {
-          label: 'deallocate() -> O(1) Push',
-          sub: 'node->next = head; head = node',
-          latency: 'Instant Reuse',
-          color: 'border-purple-500 bg-purple-50 dark:bg-purple-950/40 text-purple-800 dark:text-purple-200',
-          detail: 'Returned slot becomes the new free_head, staying hot in L1 cache!',
+          layer: 'L1 Cache Warmth',
+          spec: 'LIFO Cache Reuse',
+          latency: '1.0 ns',
+          cycles: 'Cache Hit',
+          impact: 'Highest IPC (instructions/cycle)',
+          architectureDetail: 'Because recently freed chunks are allocated first (LIFO order), recycled chunks remain hot in L1 data cache lines.',
         },
       ],
     },
     'stage-5': {
-      title: 'Architecture Flow: Phase 3 Knuth Boundary-Tag Coalescing',
-      subtitle: '15.02x Faster than std::malloc — O(1) Bidirectional Merge of Adjacent Free Blocks.',
+      title: 'Phase 3: Donald Knuth Boundary-Tag Coalescing',
+      subtitle: 'Bidirectional chunk headers and footers enabling O(1) physical neighbor coalescing',
+      busWidth: 'Knuth 1968 Boundary-Tag Architecture · Anti-Fragmentation Engine',
       nodes: [
         {
-          label: 'Left Block Footer',
-          sub: 'ptr - 4 Bytes',
-          latency: 'O(1) Backward Lookup',
-          color: 'border-indigo-500 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-800 dark:text-indigo-200',
-          detail: 'Inspect the 4 bytes immediately preceding our header to check if Left Neighbor is free.',
+          layer: 'Leading Header Tag',
+          spec: 'struct Header { size_t size; bool is_free; }',
+          latency: '4 Bytes',
+          cycles: 'Pre-Payload',
+          impact: 'Records chunk span & state',
+          architectureDetail: 'Stored immediately before user data. Stores chunk byte length and allocation flag.',
         },
         {
-          label: 'Current Block Freed',
-          sub: 'Header [Size | Free=1] Footer',
-          latency: 'Target Span',
-          color: 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 text-blue-800 dark:text-blue-200',
-          detail: 'Deallocate current variable-sized payload and mark boundary tags as free.',
+          layer: 'Trailing Footer Tag',
+          spec: 'struct Footer { size_t size; bool is_free; }',
+          latency: '4 Bytes',
+          cycles: 'Post-Payload',
+          impact: 'Enables backward neighbor inspection',
+          architectureDetail: 'Mirror copy of the header placed at the very end of the chunk. Allows the allocator to inspect the previous chunk in O(1).',
         },
         {
-          label: 'Right Block Header',
-          sub: 'ptr + curr_size',
-          latency: 'O(1) Forward Lookup',
-          color: 'border-purple-500 bg-purple-50 dark:bg-purple-950/40 text-purple-800 dark:text-purple-200',
-          detail: 'Jump forward by current block size to inspect Right Neighbor header in O(1).',
+          layer: 'O(1) Left Coalesce',
+          spec: 'Footer* prev = (Footer*)((byte*)hdr - 4)',
+          latency: '1.2 ns',
+          cycles: '4 cycles',
+          impact: 'Instant leftward merge',
+          architectureDetail: 'If previous chunk footer has is_free == true, merge current chunk with previous chunk by increasing previous chunk size.',
         },
         {
-          label: 'Coalesced Super-Block',
-          sub: 'Total Size = L + Curr + R',
-          latency: 'Zero Fragmentation',
-          color: 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-200',
-          detail: 'Fuse adjacent free blocks into one unified block ready for large allocations.',
+          layer: 'O(1) Right Coalesce',
+          spec: 'Header* next = (Header*)((byte*)hdr + size)',
+          latency: '1.2 ns',
+          cycles: '4 cycles',
+          impact: 'Eliminates external fragmentation',
+          architectureDetail: 'If next chunk header has is_free == true, combine forward into one larger contiguous free block.',
         },
       ],
     },
     'stage-6': {
-      title: 'Architecture Flow: 1-Cycle Bitwise Alignment & 64B Cache Line Isolation',
-      subtitle: 'Eliminating CPU split-loads and multi-coreMESI invalidation storms.',
+      title: 'Microarchitecture: Cache Line Alignment & False Sharing',
+      subtitle: 'Hardware alignment math, 64-byte L1 cache boundaries, and struct packing',
+      busWidth: '64-Byte Cache Line · 64-bit Hardware Memory Bus Interconnect',
       nodes: [
         {
-          label: 'Add Mask: size + (A - 1)',
-          sub: 'Pushes non-aligned bits up',
-          latency: 'ADD Instruction',
-          color: 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 text-blue-800 dark:text-blue-200',
-          detail: 'If size is not already a multiple of A, carries into the next power-of-two bit.',
+          layer: 'Bitwise Masking',
+          spec: '(addr + 7) & ~7',
+          latency: '0.25 ns',
+          cycles: '1 cycle',
+          impact: 'Eliminates division / modulo',
+          architectureDetail: 'Power-of-two alignment arithmetic executed in a single clock cycle using bitwise two’s complement masking.',
         },
         {
-          label: 'Bitwise AND: & ~(A - 1)',
-          sub: 'Clears lower log2(A) bits',
-          latency: 'AND Instruction',
-          color: 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-200',
-          detail: 'Zeroes out remainder bits in 1 clock cycle (vs 30 cycles for % modulo).',
+          layer: '64-Byte Line Spanning',
+          spec: 'Single Cache Line Hit',
+          latency: '1.0 ns',
+          cycles: '1 L1 Access',
+          impact: 'Eliminates split-read penalties',
+          architectureDetail: 'An unaligned 8-byte double crossing a 64B cache line boundary requires 2 separate bus cycles to assemble a single value.',
         },
         {
-          label: 'alignas(64) Cache Line',
-          sub: '1 Core = 1 Dedicated 64B Line',
-          latency: 'Zero False Sharing',
-          color: 'border-purple-500 bg-purple-50 dark:bg-purple-950/40 text-purple-800 dark:text-purple-200',
-          detail: 'Prevents Core 0 and Core 1 from invalidating each other’s L1 cache lines.',
+          layer: 'Struct Field Reorder',
+          spec: 'Sort members descending by size',
+          latency: 'Memory Compact',
+          cycles: '32B → 16B',
+          impact: '50% memory compression',
+          architectureDetail: 'Placing 8-byte pointers first, followed by 4-byte ints and 1-byte chars eliminates compiler alignment padding gaps.',
+        },
+        {
+          layer: 'False Sharing Guard',
+          spec: 'alignas(64) std::atomic<T>',
+          latency: 'Cache Isolation',
+          cycles: 'Core Independence',
+          impact: 'Prevents MESI bus invalidation storms',
+          architectureDetail: 'Ensures variables updated by different CPU cores reside on separate 64-byte cache lines, stopping cross-core cache invalidation.',
         },
       ],
     },
     'stage-7': {
-      title: 'Architecture Flow: Quantitative Trading Engine Memory Dispatch',
-      subtitle: 'Choosing the optimal custom allocator for every subsystem on the critical path.',
+      title: 'Quant Systems Capstone: Critical Path Allocator Dispatch',
+      subtitle: 'Architecture mapping for high-frequency trading and low-latency engines',
+      busWidth: 'Sub-Microsecond P99.99 Critical Path Execution Profile',
       nodes: [
         {
-          label: 'NIC Packet Buffer',
-          sub: 'Phase 1: Linear Arena',
-          latency: '42.04x Speedup (1.48ms)',
-          color: 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 text-blue-800 dark:text-blue-200',
-          detail: 'Scratchpad parsing of UDP market data frames; bulk-reset after every packet.',
+          layer: 'Packet Parsing',
+          spec: 'Phase 1: Linear Bump Arena',
+          latency: '1.48 ms (42x)',
+          cycles: '1 cycle / alloc',
+          impact: 'Scratchpad UDP market data processing',
+          architectureDetail: 'Zero allocations inside parser loops. Process network packets and execute a single 1-cycle bulk arena reset.',
         },
         {
-          label: 'Limit Order Book',
-          sub: 'Phase 2: Intrusive Free-List',
-          latency: '125.7x Speedup (0.87ms)',
-          color: 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-200',
-          detail: 'Fixed-size 24B Order nodes allocated and canceled millions of times per second.',
+          layer: 'Limit Order Book',
+          spec: 'Phase 2: Intrusive Free-List',
+          latency: '0.87 ms (125x)',
+          cycles: '2 cycles / alloc',
+          impact: 'Millions of 24B Order nodes / sec',
+          architectureDetail: 'LIFO order keeps recently canceled orders hot in L1 cache lines. Eliminates OS mutex stalls on trading core.',
         },
         {
-          label: 'FIX / Variable Payloads',
-          sub: 'Phase 3: Boundary-Tag Pool',
-          latency: '15.02x Speedup (8.00ms)',
-          color: 'border-purple-500 bg-purple-50 dark:bg-purple-950/40 text-purple-800 dark:text-purple-200',
-          detail: 'Arbitrary-length execution reports with O(1) neighbor coalescing.',
+          layer: 'Execution Reports',
+          spec: 'Phase 3: Boundary-Tag Pool',
+          latency: '8.00 ms (15x)',
+          cycles: 'Knuth Coalesce',
+          impact: 'Variable-length FIX payloads',
+          architectureDetail: 'Handles arbitrary sized message strings without heap fragmentation through bidirectional O(1) neighbor coalescing.',
+        },
+        {
+          layer: 'Telemetry & P99.99',
+          spec: 'Tail Latency Profile',
+          latency: '1.5ns vs 220ns',
+          cycles: 'Zero Jitter',
+          impact: 'Deterministic trading response times',
+          architectureDetail: 'Eliminates the 500-cycle malloc tail latency outliers that cause market quote drops and exchange timeouts.',
         },
       ],
     },
   };
 
   const config = diagrams[stageId] || diagrams['stage-0'];
-  const selected = config.nodes[activeNode] || config.nodes[0];
+  const activeStage = config.nodes[activeNode] || config.nodes[0];
 
   return (
-    <div className="my-6 rounded-md border border-gray-200 bg-gray-50/70 p-4 sm:p-5 dark:border-gray-800 dark:bg-[#16191f]">
-      <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+    <div className="my-6 rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-[#13171f] p-4 sm:p-5 shadow-xs">
+      {/* Visualizer Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-gray-200 dark:border-gray-800 pb-3 mb-4">
         <div>
-          <div className="text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">
-            Interactive Architecture Diagram
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-blue-500" />
+            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">
+              Interactive Hardware Architecture Pipeline
+            </span>
           </div>
-          <h3 className="text-base font-bold text-gray-900 dark:text-dark-high-emphasis mt-0.5">
+          <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white mt-1">
             {config.title}
           </h3>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+            {config.subtitle}
+          </p>
         </div>
-        <span className="text-xs text-gray-500 dark:text-dark-med-emphasis">
-          {config.subtitle}
-        </span>
+
+        <div className="text-[11px] font-mono text-gray-500 dark:text-gray-400 bg-white dark:bg-[#181c25] px-2.5 py-1 rounded border border-gray-200 dark:border-gray-800 shrink-0 self-start sm:self-auto max-w-full truncate">
+          {config.busWidth}
+        </div>
       </div>
 
-      {/* Flowchart Nodes with SVG Arrows */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-stretch my-3">
+      {/* Hardware Bus Sequence Strip */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 my-3">
         {config.nodes.map((node, idx) => {
           const isSelected = idx === activeNode;
           return (
@@ -299,41 +376,61 @@ export const ArchitectureFlowDiagram: React.FC<ArchitectureFlowDiagramProps> = (
               key={idx}
               type="button"
               onClick={() => setActiveNode(idx)}
-              className={`relative text-left rounded-md border-l-4 p-3 transition-all cursor-pointer ${
-                node.color
-              } ${
+              className={`min-w-0 relative text-left rounded-lg p-3 transition-all cursor-pointer border ${
                 isSelected
-                  ? 'ring-2 ring-blue-500 shadow-sm'
-                  : 'opacity-85 hover:opacity-100'
+                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 text-blue-900 dark:text-blue-100 ring-1 ring-blue-500 shadow-xs'
+                  : 'border-gray-200 dark:border-gray-800 bg-white dark:bg-[#181c26] text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-700'
               }`}
             >
-              <div className="flex items-center justify-between text-[11px] font-mono opacity-75 mb-1">
-                <span>STEP {idx + 1}</span>
-                <span>{idx < config.nodes.length - 1 ? '→' : '✓'}</span>
+              <div className="flex items-center justify-between text-[10px] font-mono mb-1.5 opacity-70">
+                <span className="font-semibold uppercase tracking-wider">LAYER {idx + 1}</span>
+                <span className="font-bold">{node.cycles}</span>
               </div>
-              <div className="font-bold text-sm leading-snug">{node.label}</div>
-              <div className="text-xs font-mono mt-1 opacity-90">{node.sub}</div>
-              <div className="mt-2 inline-block rounded bg-black/10 dark:bg-white/10 px-1.5 py-0.5 font-mono text-[11px] font-semibold">
-                {node.latency}
+              <div className="font-bold text-xs sm:text-sm leading-tight text-gray-900 dark:text-white">
+                {node.layer}
+              </div>
+              <div className="text-[11px] font-mono text-gray-500 dark:text-gray-400 mt-1 truncate">
+                {node.spec}
+              </div>
+
+              <div className="mt-2.5 pt-2 border-t border-gray-100 dark:border-gray-800/80 flex items-center justify-between text-[10px] font-mono">
+                <span className="font-semibold text-blue-600 dark:text-blue-400">
+                  {node.latency}
+                </span>
+                <span className="text-gray-400">
+                  {isSelected ? '● ACTIVE' : 'Select'}
+                </span>
               </div>
             </button>
           );
         })}
       </div>
 
-      {/* Active Node Hardware Inspection Callout */}
-      <div className="mt-3 flex items-center justify-between rounded bg-white px-3.5 py-2.5 text-xs border border-gray-200 dark:border-gray-800 dark:bg-[#121212]">
-        <div>
-          <span className="font-bold text-blue-600 dark:text-blue-400 mr-2">
-            [{selected.label}]:
-          </span>
-          <span className="text-gray-700 dark:text-dark-high-emphasis">
-            {selected.detail}
-          </span>
+      {/* Hardware Telemetry Spec Sheet (Terminal style) */}
+      <div className="mt-4 rounded-lg bg-gray-900 text-gray-100 p-3.5 font-mono text-xs border border-gray-800">
+        <div className="flex flex-wrap items-center justify-between border-b border-gray-800 pb-2 mb-2.5 gap-2">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="font-bold text-white text-[11px] uppercase tracking-wider">
+              {activeStage.layer}
+            </span>
+            <span className="text-gray-400 text-[11px]">· {activeStage.spec}</span>
+          </div>
+
+          <div className="flex items-center gap-3 text-[11px]">
+            <span className="text-blue-400 font-semibold">Latency: {activeStage.latency}</span>
+            <span className="text-amber-400">Cycles: {activeStage.cycles}</span>
+          </div>
         </div>
-        <span className="font-mono text-[11px] text-gray-500 dark:text-dark-med-emphasis shrink-0 ml-3 hidden sm:inline">
-          {selected.latency}
-        </span>
+
+        <div className="space-y-1.5 text-xs text-gray-300">
+          <div className="text-emerald-400 font-medium">
+            → Consequence: {activeStage.impact}
+          </div>
+          <div className="text-gray-400 leading-relaxed text-[11.5px]">
+            {activeStage.architectureDetail}
+          </div>
+        </div>
       </div>
     </div>
   );

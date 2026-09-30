@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { AppProviders } from '@/components/common/AppProviders';
 
@@ -6,6 +6,12 @@ export const metadata: Metadata = {
   title: 'Memory Allocator Guide · C++20 Low-Level Systems & Quant Engineering',
   description:
     'A comprehensive, interactive guide to physical RAM, pointers, the OS heap bottleneck, and custom C++20 memory allocators running up to 125x faster than std::malloc.',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
 };
 
 export default function RootLayout({

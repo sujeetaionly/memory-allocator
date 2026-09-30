@@ -116,11 +116,11 @@ export const CourseIndex: React.FC<CourseIndexProps> = ({ onSelectTopic }) => {
       : 'text-gray-500 group-hover:text-teal-700 dark:group-hover:text-teal-400';
 
     return (
-      <p className="mb-1 flex items-center text-sm leading-4">
+      <p className="mb-1 flex items-center text-xs sm:text-sm leading-4">
         {[1, 2, 3, 4].map((dotIdx) => (
           <svg
             key={dotIdx}
-            className={`mr-0.5 h-2.5 w-2.5 transition ${
+            className={`mr-0.5 h-2 w-2 sm:h-2.5 sm:w-2.5 transition ${
               dotIdx <= freq ? activeDotClass : 'text-gray-300 dark:text-gray-600'
             }`}
             fill="currentColor"
@@ -137,12 +137,12 @@ export const CourseIndex: React.FC<CourseIndexProps> = ({ onSelectTopic }) => {
   };
 
   return (
-    <main className="w-full">
+    <main className="w-full overflow-x-hidden">
       {/* Tier Hero Banner */}
-      <div className={`${activeTier.bannerBgClass} py-12 sm:py-16 transition-colors duration-200`}>
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          {/* Tier Switcher Pills inside Hero Banner */}
-          <div className="mb-6 flex flex-wrap justify-center gap-2">
+      <div className={`${activeTier.bannerBgClass} py-8 sm:py-14 transition-colors duration-200`}>
+        <div className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8">
+          {/* Tier Switcher Pills inside Hero Banner - Horizontal Scroll on Android */}
+          <div className="mb-5 flex overflow-x-auto no-scrollbar gap-1.5 py-1 px-1 justify-start sm:justify-center">
             {(
               [
                 { id: 'all', label: 'All Tiers' },
@@ -166,10 +166,10 @@ export const CourseIndex: React.FC<CourseIndexProps> = ({ onSelectTopic }) => {
                       setSelectedTier(tab.id);
                     }
                   }}
-                  className={`rounded-full px-3.5 py-1 text-xs font-semibold tracking-wide uppercase transition cursor-pointer ${
+                  className={`shrink-0 rounded-full px-3 py-1 text-[11px] sm:text-xs font-semibold tracking-wide uppercase transition cursor-pointer whitespace-nowrap ${
                     isSelected
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'bg-black/25 text-white/85 hover:bg-black/40 hover:text-white'
+                      ? 'bg-white text-gray-900 shadow-xs'
+                      : 'bg-black/25 text-white/90 hover:bg-black/40 hover:text-white'
                   }`}
                 >
                   {tab.label}
@@ -178,69 +178,69 @@ export const CourseIndex: React.FC<CourseIndexProps> = ({ onSelectTopic }) => {
             })}
           </div>
 
-          <h1 className="mb-6 text-center text-4xl leading-10 font-black tracking-tight text-white sm:leading-none sm:text-5xl md:text-6xl">
+          <h1 className="mb-4 text-center text-2xl sm:text-4xl md:text-5xl font-black tracking-tight text-white leading-tight break-words">
             {filterMode === 'all' ? 'Memory Allocator Guide' : activeTier.heroTitle}
           </h1>
 
-          <p className={`${activeTier.bannerTextClass} mb-8 px-4 text-center sm:mb-12 max-w-3xl mx-auto leading-relaxed`}>
+          <p className={`${activeTier.bannerTextClass} mb-6 sm:mb-10 px-2 text-center text-xs sm:text-sm md:text-base max-w-3xl mx-auto leading-relaxed`}>
             {filterMode === 'all'
               ? 'From bare silicon capacitors and C++ pointer envelopes to high-performance Bump Arena, Intrusive Free-List, Knuth Boundary Tags, and P99.99 quant benchmarks.'
               : activeTier.heroSubtitle}
-            <br />
-            Every module includes an interactive 64-byte hardware RAM simulator, step-by-step C++20 code execution, and hands-on micro-challenges.{' '}
+            <br className="hidden sm:inline" />
+            {' '}Every module includes an interactive 64-byte RAM simulator and C++20 code execution.{' '}
             <button
               onClick={() => onSelectTopic('stage-0')}
-              className="underline font-semibold text-white hover:opacity-90 cursor-pointer"
+              className="underline font-semibold text-white hover:opacity-90 cursor-pointer whitespace-nowrap"
             >
-              Start with Stage 0 (Using This Guide) →
+              Start Stage 0 →
             </button>
           </p>
 
-          {/* Two Progress Cards (Modules Progress & Problems Progress) */}
-          <div className="mx-auto grid max-w-2xl gap-8 lg:max-w-full lg:grid-cols-2">
+          {/* Two Progress Cards (Responsive on Mobile and Desktop) */}
+          <div className="mx-auto grid max-w-2xl gap-4 sm:gap-6 lg:max-w-full lg:grid-cols-2">
             {/* Card 1: Modules Progress */}
-            <div className="bg-white shadow-sm sm:rounded-lg dark:bg-gray-900">
-              <div className="px-4 py-5 sm:p-6">
-                <h3 className="dark:text-dark-high-emphasis text-lg leading-6 font-medium text-gray-900">
+            <div className="bg-white shadow-xs rounded-lg dark:bg-gray-900 border border-gray-100 dark:border-gray-800">
+              <div className="p-4 sm:p-6">
+                <h3 className="dark:text-dark-high-emphasis text-sm sm:text-base font-semibold text-gray-900">
                   Modules Progress
                 </h3>
-                <div className="mt-6">
-                  <div className="mb-4 grid grid-cols-4 gap-2">
+                <div className="mt-4">
+                  <div className="mb-3 grid grid-cols-4 gap-1.5 sm:gap-2">
                     <div className="text-center">
-                      <span className="text-3xl font-bold text-green-800 dark:text-green-100 bg-green-100 dark:bg-green-800 inline-flex h-16 w-16 items-center justify-center rounded-full">
+                      <span className="text-xl sm:text-3xl font-bold text-green-800 dark:text-green-100 bg-green-100 dark:bg-green-800 inline-flex h-11 w-11 sm:h-14 sm:w-14 items-center justify-center rounded-full">
                         {completedMods}
                       </span>
-                      <span className="mt-1 block text-xs sm:text-sm font-medium uppercase text-green-800 dark:text-green-100">
+                      <span className="mt-1 block text-[10px] sm:text-xs font-semibold uppercase text-green-800 dark:text-green-100 truncate">
                         Completed
                       </span>
                     </div>
                     <div className="text-center">
-                      <span className="text-3xl font-bold text-yellow-800 dark:text-yellow-100 bg-yellow-100 dark:bg-yellow-800 inline-flex h-16 w-16 items-center justify-center rounded-full">
+                      <span className="text-xl sm:text-3xl font-bold text-yellow-800 dark:text-yellow-100 bg-yellow-100 dark:bg-yellow-800 inline-flex h-11 w-11 sm:h-14 sm:w-14 items-center justify-center rounded-full">
                         {inProgressMods}
                       </span>
-                      <span className="mt-1 block text-xs sm:text-sm font-medium uppercase text-yellow-800 dark:text-yellow-100">
+                      <span className="mt-1 block text-[10px] sm:text-xs font-semibold uppercase text-yellow-800 dark:text-yellow-100 truncate">
                         In Progress
                       </span>
                     </div>
                     <div className="text-center">
-                      <span className="text-3xl font-bold text-blue-800 dark:text-blue-50 bg-blue-50 dark:bg-blue-800 inline-flex h-16 w-16 items-center justify-center rounded-full">
+                      <span className="text-xl sm:text-3xl font-bold text-blue-800 dark:text-blue-50 bg-blue-50 dark:bg-blue-800 inline-flex h-11 w-11 sm:h-14 sm:w-14 items-center justify-center rounded-full">
                         {skippedMods}
                       </span>
-                      <span className="mt-1 block text-xs sm:text-sm font-medium uppercase text-blue-800 dark:text-blue-50">
+                      <span className="mt-1 block text-[10px] sm:text-xs font-semibold uppercase text-blue-800 dark:text-blue-50 truncate">
                         Skipped
                       </span>
                     </div>
                     <div className="text-center">
-                      <span className="text-3xl font-bold text-gray-800 bg-gray-100 dark:bg-gray-800 dark:text-gray-200 inline-flex h-16 w-16 items-center justify-center rounded-full">
+                      <span className="text-xl sm:text-3xl font-bold text-gray-800 bg-gray-100 dark:bg-gray-800 dark:text-gray-200 inline-flex h-11 w-11 sm:h-14 sm:w-14 items-center justify-center rounded-full">
                         {notStartedMods}
                       </span>
-                      <span className="mt-1 block text-xs sm:text-sm font-medium uppercase text-gray-800 dark:text-gray-100">
+                      <span className="mt-1 block text-[10px] sm:text-xs font-semibold uppercase text-gray-800 dark:text-gray-100 truncate">
                         Not Started
                       </span>
                     </div>
                   </div>
                   <div className="relative">
-                    <div className="flex h-4 overflow-hidden bg-gray-200 text-xs dark:bg-gray-700 rounded">
+                    <div className="flex h-3 overflow-hidden bg-gray-200 text-xs dark:bg-gray-700 rounded-full">
                       <div
                         style={{ width: `${(completedMods / totalModules) * 100}%` }}
                         className="flex flex-col justify-center bg-green-500 text-center whitespace-nowrap text-white shadow-none dark:bg-green-700"
@@ -255,8 +255,8 @@ export const CourseIndex: React.FC<CourseIndexProps> = ({ onSelectTopic }) => {
                       />
                     </div>
                     <div className="text-right mt-1">
-                      <span className="dark:text-dark-med-emphasis inline-block text-sm font-semibold text-gray-800">
-                        {totalModules} total
+                      <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">
+                        {totalModules} modules total
                       </span>
                     </div>
                   </div>
@@ -265,48 +265,48 @@ export const CourseIndex: React.FC<CourseIndexProps> = ({ onSelectTopic }) => {
             </div>
 
             {/* Card 2: Problems & Labs Progress */}
-            <div className="bg-white shadow-sm sm:rounded-lg dark:bg-gray-900">
-              <div className="px-4 py-5 sm:p-6">
-                <h3 className="dark:text-dark-high-emphasis text-lg leading-6 font-medium text-gray-900">
+            <div className="bg-white shadow-xs rounded-lg dark:bg-gray-900 border border-gray-100 dark:border-gray-800">
+              <div className="p-4 sm:p-6">
+                <h3 className="dark:text-dark-high-emphasis text-sm sm:text-base font-semibold text-gray-900">
                   Problems &amp; Labs Progress
                 </h3>
-                <div className="mt-6">
-                  <div className="mb-4 grid grid-cols-4 gap-2">
+                <div className="mt-4">
+                  <div className="mb-3 grid grid-cols-4 gap-1.5 sm:gap-2">
                     <div className="text-center">
-                      <span className="text-3xl font-bold text-green-800 dark:text-green-100 bg-green-100 dark:bg-green-800 inline-flex h-16 w-16 items-center justify-center rounded-full">
+                      <span className="text-xl sm:text-3xl font-bold text-green-800 dark:text-green-100 bg-green-100 dark:bg-green-800 inline-flex h-11 w-11 sm:h-14 sm:w-14 items-center justify-center rounded-full">
                         {completedProblems}
                       </span>
-                      <span className="mt-1 block text-xs sm:text-sm font-medium uppercase text-green-800 dark:text-green-100">
+                      <span className="mt-1 block text-[10px] sm:text-xs font-semibold uppercase text-green-800 dark:text-green-100 truncate">
                         Completed
                       </span>
                     </div>
                     <div className="text-center">
-                      <span className="text-3xl font-bold text-yellow-800 dark:text-yellow-100 bg-yellow-100 dark:bg-yellow-800 inline-flex h-16 w-16 items-center justify-center rounded-full">
+                      <span className="text-xl sm:text-3xl font-bold text-yellow-800 dark:text-yellow-100 bg-yellow-100 dark:bg-yellow-800 inline-flex h-11 w-11 sm:h-14 sm:w-14 items-center justify-center rounded-full">
                         {inProgressProblems}
                       </span>
-                      <span className="mt-1 block text-xs sm:text-sm font-medium uppercase text-yellow-800 dark:text-yellow-100">
+                      <span className="mt-1 block text-[10px] sm:text-xs font-semibold uppercase text-yellow-800 dark:text-yellow-100 truncate">
                         In Progress
                       </span>
                     </div>
                     <div className="text-center">
-                      <span className="text-3xl font-bold text-blue-800 dark:text-blue-50 bg-blue-50 dark:bg-blue-800 inline-flex h-16 w-16 items-center justify-center rounded-full">
+                      <span className="text-xl sm:text-3xl font-bold text-blue-800 dark:text-blue-50 bg-blue-50 dark:bg-blue-800 inline-flex h-11 w-11 sm:h-14 sm:w-14 items-center justify-center rounded-full">
                         0
                       </span>
-                      <span className="mt-1 block text-xs sm:text-sm font-medium uppercase text-blue-800 dark:text-blue-50">
+                      <span className="mt-1 block text-[10px] sm:text-xs font-semibold uppercase text-blue-800 dark:text-blue-50 truncate">
                         Skipped
                       </span>
                     </div>
                     <div className="text-center">
-                      <span className="text-3xl font-bold text-gray-800 bg-gray-100 dark:bg-gray-800 dark:text-gray-200 inline-flex h-16 w-16 items-center justify-center rounded-full">
+                      <span className="text-xl sm:text-3xl font-bold text-gray-800 bg-gray-100 dark:bg-gray-800 dark:text-gray-200 inline-flex h-11 w-11 sm:h-14 sm:w-14 items-center justify-center rounded-full">
                         {notStartedProblems}
                       </span>
-                      <span className="mt-1 block text-xs sm:text-sm font-medium uppercase text-gray-800 dark:text-gray-100">
+                      <span className="mt-1 block text-[10px] sm:text-xs font-semibold uppercase text-gray-800 dark:text-gray-100 truncate">
                         Not Started
                       </span>
                     </div>
                   </div>
                   <div className="relative">
-                    <div className="flex h-4 overflow-hidden bg-gray-200 text-xs dark:bg-gray-700 rounded">
+                    <div className="flex h-3 overflow-hidden bg-gray-200 text-xs dark:bg-gray-700 rounded-full">
                       <div
                         style={{ width: `${(completedProblems / totalProblems) * 100}%` }}
                         className="flex flex-col justify-center bg-green-500 text-center whitespace-nowrap text-white shadow-none dark:bg-green-700"
@@ -317,8 +317,8 @@ export const CourseIndex: React.FC<CourseIndexProps> = ({ onSelectTopic }) => {
                       />
                     </div>
                     <div className="text-right mt-1">
-                      <span className="dark:text-dark-med-emphasis inline-block text-sm font-semibold text-gray-800">
-                        {totalProblems} total
+                      <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">
+                        {totalProblems} challenges total
                       </span>
                     </div>
                   </div>
@@ -329,10 +329,10 @@ export const CourseIndex: React.FC<CourseIndexProps> = ({ onSelectTopic }) => {
         </div>
       </div>
 
-      {/* Center Dotted-Line Syllabus Tree */}
+      {/* Center Dotted-Line Syllabus Tree - Mobile Stacked, Desktop Centered */}
       <div
         id="sec-stages"
-        className="syllabus-dotted-line-container mx-auto max-w-7xl space-y-8 px-4 py-12"
+        className="syllabus-dotted-line-container mx-auto max-w-7xl space-y-8 sm:space-y-12 px-3 sm:px-6 lg:px-8 py-8 sm:py-12"
       >
         {visibleCategories.map((cat, idx) => {
           const catMods = cat.moduleIds.map((id) => ALLOCATOR_MODULES[id]).filter(Boolean);
@@ -341,15 +341,15 @@ export const CourseIndex: React.FC<CourseIndexProps> = ({ onSelectTopic }) => {
           ).length;
 
           return (
-            <div key={idx} className="group/category flex flex-col md:flex-row">
-              {/* Left Column: Category Title, Mini Progress Bar, Description */}
-              <div className="flex-1 pr-12 md:text-right">
-                <h2 className="dark:text-dark-med-emphasis dark:group-hover/category:text-dark-high-emphasis py-3 text-2xl leading-6 font-semibold text-gray-600 transition group-hover/category:text-gray-900">
+            <div key={idx} className="group/category flex flex-col md:flex-row gap-4 md:gap-0">
+              {/* Left Column / Mobile Category Header */}
+              <div className="flex-1 md:pr-12 md:text-right">
+                <h2 className="py-1 md:py-3 text-lg sm:text-2xl font-bold text-gray-800 dark:text-white transition group-hover/category:text-blue-600">
                   {cat.categoryTitle}
                 </h2>
-                <div className="dark:text-dark-med-emphasis dark:group-hover/category:text-dark-high-emphasis py-2 leading-6 text-gray-500 transition group-hover/category:text-gray-800">
+                <div className="py-1 md:py-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                   <div className="inline-block align-middle">
-                    <div className="flex h-2 w-24 items-center overflow-hidden rounded-full bg-gray-200 text-xs dark:bg-gray-700">
+                    <div className="flex h-2 w-20 sm:w-24 items-center overflow-hidden rounded-full bg-gray-200 text-xs dark:bg-gray-700">
                       <div
                         style={{
                           width: `${catMods.length ? (doneInCat / catMods.length) * 100 : 0}%`,
@@ -358,19 +358,17 @@ export const CourseIndex: React.FC<CourseIndexProps> = ({ onSelectTopic }) => {
                       />
                     </div>
                   </div>
-                  <div className="ml-2 inline-block align-middle">
-                    <span className="text-sm font-semibold">
-                      {doneInCat}/{catMods.length}
-                    </span>
+                  <div className="ml-2 inline-block align-middle font-semibold">
+                    {doneInCat}/{catMods.length}
                   </div>
                 </div>
-                <p className="dark:group-hover/category:text-dark-med-emphasis text-sm text-gray-400 transition group-hover/category:text-gray-600 md:ml-auto md:max-w-sm dark:text-gray-500">
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 md:ml-auto md:max-w-sm mt-1">
                   {cat.subtitle}
                 </p>
               </div>
 
-              {/* Right Column: Module Nodes with Center Line Circles & Frequency Dots */}
-              <div className="flex-1 pl-12 space-y-2">
+              {/* Right Column / Module Nodes */}
+              <div className="flex-1 md:pl-12 space-y-3">
                 {catMods.map((mod) => (
                   <span
                     key={mod.id}
@@ -380,23 +378,22 @@ export const CourseIndex: React.FC<CourseIndexProps> = ({ onSelectTopic }) => {
                   >
                     <div
                       onClick={() => onSelectTopic(mod.id)}
-                      className="link-with-progress-link link-with-progress-link--syllabus group py-3 text-xl leading-6 cursor-pointer"
+                      className="link-with-progress-link link-with-progress-link--syllabus group py-2.5 sm:py-3 text-base sm:text-lg leading-snug cursor-pointer"
                     >
-                      <p className="text-gray-800 dark:text-gray-200 dark:group-hover:text-white mb-1 flex items-center transition group-hover:text-blue-700 font-medium">
+                      <p className="text-gray-900 dark:text-gray-100 dark:group-hover:text-white mb-1 flex items-center transition group-hover:text-blue-600 font-semibold">
                         <span className="mr-2 inline-flex items-end">{mod.title}</span>
                       </p>
                       {renderFrequencyDots(mod.frequency, mod.frequencyLabel)}
-                      <p className="dark:group-hover:text-dark-high-emphasis block text-sm leading-5 text-gray-500 dark:text-gray-400 transition group-hover:text-blue-700">
+                      <p className="text-xs sm:text-sm leading-relaxed text-gray-500 dark:text-gray-400 transition group-hover:text-blue-700">
                         {mod.subtitle}
-                        <i>
-                          <br />
+                        <i className="block text-[11px] mt-0.5 text-gray-400 dark:text-gray-500">
                           Updated: {mod.updatedAgo}
                         </i>
                       </p>
 
                       {/* Quick Section Jump Pills */}
                       {mod.sections.length > 0 && (
-                        <div className="mt-2.5 flex flex-wrap gap-1.5">
+                        <div className="mt-2 flex flex-wrap gap-1">
                           {mod.sections.map((sec) => (
                             <button
                               key={sec.id}
@@ -405,7 +402,7 @@ export const CourseIndex: React.FC<CourseIndexProps> = ({ onSelectTopic }) => {
                                 e.stopPropagation();
                                 onSelectTopic(mod.id, sec.id);
                               }}
-                              className="rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 hover:bg-blue-100 hover:text-blue-800 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white transition cursor-pointer"
+                              className="rounded bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600 hover:bg-blue-100 hover:text-blue-800 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white transition cursor-pointer"
                             >
                               {sec.title}
                             </button>

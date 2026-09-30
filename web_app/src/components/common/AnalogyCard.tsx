@@ -13,11 +13,11 @@ interface AnalogyCardProps {
  */
 export const AnalogyCard: React.FC<AnalogyCardProps> = ({ title, children }) => {
   return (
-    <div className="my-5 rounded-md bg-blue-50 p-4 dark:bg-blue-700/25">
+    <div className="my-7 sm:my-8 rounded-lg bg-blue-50/90 p-5 sm:p-6 dark:bg-blue-950/40 border border-blue-200/60 dark:border-blue-800/50 shadow-xs">
       <div className="flex items-start">
-        <div className="shrink-0">
+        <div className="shrink-0 mt-0.5">
           <svg
-            className="h-5 w-5 text-blue-400 dark:text-blue-400"
+            className="h-5 w-5 text-blue-500 dark:text-blue-400"
             viewBox="0 0 20 20"
             fill="currentColor"
             aria-hidden="true"
@@ -29,11 +29,11 @@ export const AnalogyCard: React.FC<AnalogyCardProps> = ({ title, children }) => 
             />
           </svg>
         </div>
-        <div className="ml-3 flex-1">
-          <div className="text-sm leading-5 font-semibold text-blue-800 dark:text-blue-200">
+        <div className="ml-3.5 flex-1">
+          <div className="text-sm leading-snug font-semibold text-blue-900 dark:text-blue-200">
             Mental Model — {title}
           </div>
-          <div className="mt-2 text-sm leading-6 text-blue-700 dark:text-blue-200/90 space-y-2">
+          <div className="mt-2.5 text-sm leading-relaxed text-blue-800 dark:text-blue-200/90 space-y-2.5">
             {children}
           </div>
         </div>

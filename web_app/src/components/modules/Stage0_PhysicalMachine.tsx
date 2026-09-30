@@ -161,7 +161,8 @@ export const Stage0_PhysicalMachine: React.FC<Stage0Props> = ({ onNextStage }) =
             </p>
 
             <QuantNote type="warning" title="THE MEMORY WALL IN QUANTITATIVE SYSTEMS">
-              In High-Frequency Trading (HFT) and ultra-low latency computing, CPU arithmetic is essentially free. <strong>Memory access is the bottleneck of modern civilization.</strong>
+              In High-Frequency Trading (HFT) and ultra-low latency computing, CPU arithmetic is essentially free.{' '}
+              <strong>Memory access is the bottleneck of modern civilization.</strong>{' '}
               If your algorithm places data randomly in RAM, your program stalls. If you organize memory with mechanical sympathy, your code runs 100x faster!
             </QuantNote>
 
