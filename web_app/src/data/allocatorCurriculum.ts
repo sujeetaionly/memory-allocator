@@ -174,10 +174,11 @@ export const ALLOCATOR_MODULES: Record<string, ModuleMeta> = {
     nextModule: 'stage-2',
     nextLabel: 'The OS Heap Bottleneck',
     sections: [
-      { id: 'sec-stage1-types', title: 'Data Types are Byte Spans' },
-      { id: 'sec-stage1-pointers', title: 'Pointers Demystified (& and *)' },
-      { id: 'sec-stage1-stack', title: 'The Stack: Instant Speed with Limits' },
-      { id: 'sec-stage1-flow', title: 'Pointer & Stack Memory Diagram' },
+      { id: 'sec-stage1-types', title: '1.1 Data Types are Byte Spans' },
+      { id: 'sec-stage1-pointers', title: '1.2 Pointers Demystified (& and *)' },
+      { id: 'sec-stage1-stack', title: '1.3 The Stack & Ephemeral Lifetimes' },
+      { id: 'sec-stage1-ptr-arithmetic', title: '1.4 Pointer Arithmetic & std::byte' },
+      { id: 'sec-stage1-placement-new', title: '1.5 Placement new & Destructors' },
     ],
     resources: [
       {
@@ -198,11 +199,19 @@ export const ALLOCATOR_MODULES: Record<string, ModuleMeta> = {
       },
       {
         id: 'res-s1-3',
-        source: 'ASM',
-        sourceTooltip: 'x86-64 Hardware Stack Pointer (RSP)',
-        title: '3 - Stack Frame Lifetimes & Dangling Pointer Hazards',
-        description: 'Why returning a pointer to a local stack variable causes UB',
-        sectionId: 'sec-stage1-stack',
+        source: 'PTR-MATH',
+        sourceTooltip: 'ISO C++20 Pointer Arithmetic & std::byte Rules',
+        title: '3 - Pointer Arithmetic Scaling & std::byte vs char',
+        description: 'Why ptr + 1 scales by sizeof(*ptr) and why allocators mandate std::byte',
+        sectionId: 'sec-stage1-ptr-arithmetic',
+      },
+      {
+        id: 'res-s1-4',
+        source: 'OBJECT-LIFE',
+        sourceTooltip: 'C++ Object Model & Placement new',
+        title: '4 - Decoupling Memory Allocation from Object Construction',
+        description: 'Constructing via placement new and destroying with explicit ~T() calls',
+        sectionId: 'sec-stage1-placement-new',
       },
     ],
   },
@@ -224,9 +233,10 @@ export const ALLOCATOR_MODULES: Record<string, ModuleMeta> = {
     nextModule: 'stage-3',
     nextLabel: 'Phase 1: Linear Arena',
     sections: [
-      { id: 'sec-stage2-traps', title: 'The Three Fatal Sins of Malloc' },
-      { id: 'sec-stage2-solution', title: 'Why We Build Custom Allocators' },
-      { id: 'sec-stage2-flow', title: 'OS Kernel Trap vs User-Space Bypass' },
+      { id: 'sec-stage2-traps', title: '2.1 The Three Fatal Flaws of Malloc' },
+      { id: 'sec-stage2-hidden-header', title: '2.2 Anatomy of a Malloc Chunk' },
+      { id: 'sec-stage2-code-demo', title: '2.3 Empirical C++ Jitter Demo' },
+      { id: 'sec-stage2-solution', title: '2.4 Custom Allocator Paradigm Shift' },
     ],
     resources: [
       {
@@ -239,11 +249,19 @@ export const ALLOCATOR_MODULES: Record<string, ModuleMeta> = {
       },
       {
         id: 'res-s2-2',
-        source: 'HFT-ARCH',
-        sourceTooltip: 'High-Frequency Trading Memory Design',
-        title: '2 - Swiss-Cheese Heap Fragmentation & Cache Misses',
-        description: 'Interactive simulation of variable-size heap holes and allocation failure',
-        sectionId: 'sec-stage2-solution',
+        source: 'CHUNK-META',
+        sourceTooltip: 'glibc malloc chunk header layout',
+        title: '2 - Chunk Header Anatomy & Hidden Metadata Tax',
+        description: 'Why free() needs no size argument and how hidden headers pollute L1 cache',
+        sectionId: 'sec-stage2-hidden-header',
+      },
+      {
+        id: 'res-s2-3',
+        source: 'JITTER-TEST',
+        sourceTooltip: 'C++20 empirical latency distribution study',
+        title: '3 - 100,000 Allocation Jitter Demo vs Upfront Buffer',
+        description: 'Measuring P50 vs P99 tail spikes and eliminating jitter via user-space buffers',
+        sectionId: 'sec-stage2-code-demo',
       },
     ],
   },
@@ -265,10 +283,10 @@ export const ALLOCATOR_MODULES: Record<string, ModuleMeta> = {
     nextModule: 'stage-4',
     nextLabel: 'Phase 2: Free-List Pool',
     sections: [
-      { id: 'sec-p1-raw', title: 'Raw Memory: std::byte[]' },
-      { id: 'sec-p1-placement', title: 'Placement new Objects' },
-      { id: 'sec-p1-destruct', title: 'Bulk Reset vs Individual Free' },
-      { id: 'sec-p1-flow', title: 'Arena Bump Pointer State Machine' },
+      { id: 'sec-p1-raw', title: '3.1 Raw Memory: std::byte[]' },
+      { id: 'sec-p1-placement', title: '3.2 Placement new Objects' },
+      { id: 'sec-p1-destruct', title: '3.3 Bulk Reset vs Individual Free' },
+      { id: 'sec-p1-source', title: '3.4 Production C++20 Header & Test Suite' },
     ],
     resources: [
       {
@@ -307,9 +325,9 @@ export const ALLOCATOR_MODULES: Record<string, ModuleMeta> = {
     nextModule: 'stage-5',
     nextLabel: 'Phase 3: Variable Allocator',
     sections: [
-      { id: 'sec-p2-union', title: 'Zero-Overhead Embedded Union' },
-      { id: 'sec-p2-o1', title: 'O(1) Singly-Linked Push & Pop' },
-      { id: 'sec-p2-flow', title: 'Intrusive Free-List Pointer Diagram' },
+      { id: 'sec-p2-union', title: '4.1 Zero-Overhead Embedded Union' },
+      { id: 'sec-p2-o1', title: '4.2 O(1) Singly-Linked Push & Pop' },
+      { id: 'sec-p2-source', title: '4.3 Production C++20 Header & Test Suite' },
     ],
     resources: [
       {
@@ -348,9 +366,9 @@ export const ALLOCATOR_MODULES: Record<string, ModuleMeta> = {
     nextModule: 'stage-6',
     nextLabel: 'Hardware Sympathy & Caches',
     sections: [
-      { id: 'sec-p3-tags', title: 'Donald Knuth Boundary Tags' },
-      { id: 'sec-p3-coalesce', title: 'Instant O(1) Neighbor Coalescing' },
-      { id: 'sec-p3-flow', title: 'Boundary-Tag Coalescing Flowchart' },
+      { id: 'sec-p3-tags', title: '5.1 Donald Knuth Boundary Tags' },
+      { id: 'sec-p3-coalesce', title: '5.2 Instant O(1) Neighbor Coalescing' },
+      { id: 'sec-p3-source', title: '5.3 Production C++20 Header & Test Suite' },
     ],
     resources: [
       {
@@ -389,10 +407,11 @@ export const ALLOCATOR_MODULES: Record<string, ModuleMeta> = {
     nextModule: 'stage-7',
     nextLabel: 'Quant Capstone & Benchmarks',
     sections: [
-      { id: 'sec-p4-formula', title: '1-Clock-Cycle Alignment Formula' },
-      { id: 'sec-p4-calc', title: 'Interactive Bitwise Alignment Lab' },
-      { id: 'sec-p4-cache', title: '64-Byte Cache Lines & False Sharing' },
-      { id: 'sec-p4-padding', title: 'Struct Padding & Field Reordering' },
+      { id: 'sec-p4-formula', title: '6.1 1-Clock-Cycle Alignment Formula' },
+      { id: 'sec-p4-calc', title: '6.2 Interactive Bitwise Alignment Lab' },
+      { id: 'sec-p4-cache', title: '6.3 64-Byte Cache Lines & False Sharing' },
+      { id: 'sec-p4-padding', title: '6.4 Struct Padding & Field Reordering' },
+      { id: 'sec-p4-source', title: '6.5 Production C++20 Memory Utilities & Driver' },
     ],
     resources: [
       {
@@ -431,9 +450,10 @@ export const ALLOCATOR_MODULES: Record<string, ModuleMeta> = {
     nextModule: 'sandbox',
     nextLabel: 'Interactive RAM Sandbox',
     sections: [
-      { id: 'sec-stage7-tail', title: 'The Tyranny of P99.99 Tail Latency' },
-      { id: 'sec-stage7-matrix', title: '1,000,000 Ops Performance Matrix' },
-      { id: 'sec-stage7-interview', title: 'Quant Interview War Room & Quiz' },
+      { id: 'sec-stage7-tail', title: '7.1 The Tyranny of P99 Tail Latency' },
+      { id: 'sec-stage7-matrix', title: '7.2 1,000,000 Ops Performance Matrix' },
+      { id: 'sec-stage7-code-harness', title: '7.3 Unified C++20 Benchmark Suite' },
+      { id: 'sec-stage7-interview', title: '7.4 Quant Systems Interview Drills' },
     ],
     resources: [
       {
@@ -446,9 +466,17 @@ export const ALLOCATOR_MODULES: Record<string, ModuleMeta> = {
       },
       {
         id: 'res-s7-2',
+        source: 'BENCH-CODE',
+        sourceTooltip: 'Stand-alone runnable C++20 benchmark driver & CMake',
+        title: '2 - Unified C++20 Microbenchmark Harness & CMakeLists',
+        description: 'Copy-pasteable harness benchmarking malloc vs custom engines with compiler barriers',
+        sectionId: 'sec-stage7-code-harness',
+      },
+      {
+        id: 'res-s7-3',
         source: 'WAR-ROOM',
         sourceTooltip: 'Quantitative Systems Developer Interview Prep',
-        title: '2 - Interactive Quiz, Flashcard Deck & Resume Bullet Builder',
+        title: '3 - Interactive Quiz, Flashcard Deck & Resume Bullet Builder',
         description: 'Test your mastery and generate verifiable C++20 systems resume bullets',
         sectionId: 'sec-stage7-interview',
       },

@@ -5,12 +5,108 @@ import { DualPaneLayout } from '@/components/common/DualPaneLayout';
 import { MicroChallengeEngine } from '@/components/common/MicroChallengeEngine';
 import { AnalogyCard } from '@/components/common/AnalogyCard';
 import { QuantNote } from '@/components/common/QuantNote';
+import { ProductionCodeBlock } from '@/components/code/ProductionCodeBlock';
 import { useVirtualMachine } from '@/stores/VirtualMachineContext';
 
 interface Stage2Props {
   onNextStage: () => void;
   onPrevStage: () => void;
 }
+
+const HEAP_JITTER_CODE = `#include <iostream>
+#include <chrono>
+#include <vector>
+#include <algorithm>
+#include <cstdlib>
+
+// Compiler barrier: forces CPU to treat pointer as live memory
+static void escape(void* p) {
+    asm volatile("" : : "r,m"(p) : "memory");
+}
+
+int main() {
+    constexpr size_t ITERATIONS = 100'000;
+    std::vector<int64_t> latencies_ns;
+    latencies_ns.reserve(ITERATIONS);
+
+    // Naive pattern: calling malloc() inside tight processing loop
+    for (size_t i = 0; i < ITERATIONS; ++i) {
+        auto t0 = std::chrono::high_resolution_clock::now();
+        void* p = std::malloc(64); // Requests 64 bytes from OS heap
+        escape(p);
+        auto t1 = std::chrono::high_resolution_clock::now();
+
+        latencies_ns.push_back(
+            std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()
+        );
+        std::free(p);
+    }
+
+    std::sort(latencies_ns.begin(), latencies_ns.end());
+    int64_t p50 = latencies_ns[static_cast<size_t>(ITERATIONS * 0.50)];
+    int64_t p99 = latencies_ns[static_cast<size_t>(ITERATIONS * 0.99)];
+    int64_t max = latencies_ns.back();
+
+    std::cout << "=== OS Malloc Latency Jitter Profile ===\\n";
+    std::cout << "P50 (Median)   : " << p50 << " ns\\n";
+    std::cout << "P99 (Tail)     : " << p99 << " ns\\n";
+    std::cout << "Worst Spike    : " << max << " ns (Kernel trap or mutex stall!)\\n";
+    return 0;
+}`;
+
+const BUFFER_BYPASS_CODE = `#include <iostream>
+#include <chrono>
+#include <vector>
+#include <algorithm>
+#include <cstddef>
+#include <cstdint>
+#include <new>
+
+struct MarketOrder {
+    uint64_t order_id;
+    double price;
+    uint32_t qty;
+    char side;
+};
+
+int main() {
+    constexpr size_t CAPACITY = 100'000;
+    // Step 1: Pre-allocate 1 continuous slab upfront at startup (0 hot-path syscalls)
+    auto* raw_pool = new std::byte[CAPACITY * sizeof(MarketOrder)];
+    size_t offset = 0;
+
+    std::vector<int64_t> latencies_ns;
+    latencies_ns.reserve(CAPACITY);
+
+    // Step 2: In the hot loop, allocate via 1-cycle integer math + placement new
+    for (size_t i = 0; i < CAPACITY; ++i) {
+        auto t0 = std::chrono::high_resolution_clock::now();
+
+        // 1-Cycle allocation: bump offset by sizeof(MarketOrder)
+        void* memory = raw_pool + offset;
+        offset += sizeof(MarketOrder);
+
+        // Construct directly in place - ZERO kernel traps, ZERO mutexes!
+        MarketOrder* order = new (memory) MarketOrder{i + 1, 104.50, 100, 'B'};
+        
+        auto t1 = std::chrono::high_resolution_clock::now();
+        latencies_ns.push_back(
+            std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count()
+        );
+
+        // Explicit destruction when finished
+        order->~MarketOrder();
+    }
+
+    std::sort(latencies_ns.begin(), latencies_ns.end());
+    std::cout << "=== Upfront Pre-allocated Buffer Profile ===\\n";
+    std::cout << "P50 (Median)   : " << latencies_ns[static_cast<size_t>(CAPACITY * 0.50)] << " ns\\n";
+    std::cout << "P99 (Tail)     : " << latencies_ns[static_cast<size_t>(CAPACITY * 0.99)] << " ns\\n";
+    std::cout << "Worst Spike    : " << latencies_ns.back() << " ns (Predictable!)\\n";
+
+    delete[] raw_pool;
+    return 0;
+}`;
 
 export const Stage2_HeapBottleneck: React.FC<Stage2Props> = ({
   onNextStage,
@@ -58,6 +154,26 @@ export const Stage2_HeapBottleneck: React.FC<Stage2Props> = ({
     xpReward: 150,
   };
 
+  const challenge3 = {
+    id: 'c-stage2-hidden-header',
+    stageId: 'stage-2',
+    title: 'The Hidden Metadata Tax of malloc()',
+    scenario:
+      'In C++, you call `free(ptr)` or `delete ptr`, passing only the pointer itself without specifying how many bytes to free. How does the OS heap allocator know how large the allocation was?',
+    question: 'How does free() know how many bytes to reclaim?',
+    options: [
+      'The OS kernel scans the entire 64-bit address space looking for null terminators.',
+      'The allocator secretly wrote an 8-to-16 byte metadata header (storing size and flags) immediately before the returned pointer!',
+      'The CPU hardware tracks all pointer sizes automatically inside L1 cache registers.',
+      'It cannot know, so it always reclaims exactly 4,096 bytes regardless of request size.',
+    ],
+    correctIndex: 1,
+    hint: 'Notice that the allocator gave you `ptr`, but allocated slightly more bytes upfront.',
+    explanation:
+      'Exactly! Standard allocators like glibc ptmalloc prepend an 8- or 16-byte chunk header directly before `ptr` (at `ptr - sizeof(size_t)`). When you pass `ptr` to `free(ptr)`, it subtracts the header offset to read the chunk size and flags. This hidden header incurs per-allocation overhead and degrades cache locality for small objects!',
+    xpReward: 150,
+  };
+
   const interactiveControls = (
     <div className="space-y-3">
       <p className="text-xs text-slate-600 dark:text-slate-400">
@@ -90,12 +206,12 @@ export const Stage2_HeapBottleneck: React.FC<Stage2Props> = ({
     <DualPaneLayout interactiveControls={interactiveControls}>
       <article className="lesson-article">
         <header className="article-header" id="sec-stage2-head">
-          <div className="text-xs uppercase font-mono font-bold text-blue-600 dark:text-blue-400 tracking-wider mb-1">
+          <div className="text-xs uppercase font-mono font-bold text-amber-600 dark:text-amber-400 tracking-wider mb-1">
             STAGE 2 — THE ROOT PROBLEM
           </div>
           <h1 className="article-title">The Dynamic Memory Problem &amp; Why Malloc Fails</h1>
           <p className="text-xs text-slate-500 font-mono mt-1">
-            Estimated time: 12 mins • Key Concept: Kernel traps, Mutex contention, Swiss-cheese fragmentation
+            Estimated time: 14 mins • Key Concept: Kernel traps, Mutex contention, Hidden chunk headers, Fragmentation
           </p>
         </header>
 
@@ -113,7 +229,7 @@ export const Stage2_HeapBottleneck: React.FC<Stage2Props> = ({
             The <strong>Heap</strong> is like an open rental warehouse down the road: whenever you need space, you have to talk to the warehouse clerk (<code className="code-pill">malloc</code>), fill out forms, wait in line behind other customers (mutex locks), and remember to return the storage unit key (<code className="code-pill">free</code>).
           </AnalogyCard>
 
-          {/* Section 2.2 */}
+          {/* Section 2.1 */}
           <section id="sec-stage2-traps" className="lesson-section">
             <h2>2.1 — The Three Fatal Flaws of Standard Malloc</h2>
             <p className="prose">
@@ -126,7 +242,7 @@ export const Stage2_HeapBottleneck: React.FC<Stage2Props> = ({
                   <span>1. OS Kernel Traps (Syscalls)</span>
                 </div>
                 <p className="text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">
-                  When the heap runs low, <code className="code-pill">malloc</code> triggers an OS system call (<code className="code-pill">brk</code> or <code className="code-pill">mmap</code>). The CPU must halt user code, switch into kernel mode, modify page tables, and return. This takes <strong>1,000 to 10,000 clock cycles</strong>!
+                  When the heap runs low, <code className="code-pill">malloc</code> triggers an OS system call (<code className="code-pill">brk</code> or <code className="code-pill">mmap</code>). The CPU must halt user code, switch into kernel mode (Ring-0), modify page tables, and return. This takes <strong>1,000 to 10,000 clock cycles</strong>!
                 </p>
               </div>
 
@@ -153,9 +269,74 @@ export const Stage2_HeapBottleneck: React.FC<Stage2Props> = ({
             <MicroChallengeEngine challenge={challenge2} />
           </section>
 
+          {/* Section 2.2 */}
+          <section id="sec-stage2-hidden-header" className="lesson-section">
+            <h2>2.2 — Anatomy of a Malloc Chunk: The Hidden Metadata Tax</h2>
+            <p className="prose">
+              Have you ever wondered why <code className="code-pill">free(ptr)</code> or <code className="code-pill">delete ptr</code> does not require you to pass the size of the block being freed?
+            </p>
+            <p className="prose">
+              Because standard allocators secretly allocate <strong>more bytes than you asked for</strong>. In standard <code className="code-pill">glibc ptmalloc</code>, an 8-byte or 16-byte chunk header is prepended directly before your pointer:
+            </p>
+
+            <div className="my-5 p-4 rounded-xl bg-slate-900 border border-slate-800 text-xs font-mono text-slate-300">
+              <div className="text-slate-500 mb-2">// Physical Layout of a standard glibc heap chunk:</div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div className="p-3 rounded-lg border border-amber-600/40 bg-amber-950/20 text-center">
+                  <div className="text-amber-400 font-bold">8 Bytes Hidden Header</div>
+                  <div className="text-[11px] text-slate-400 mt-1">size_t chunk_size | flags</div>
+                  <div className="text-[10px] text-amber-500/80 mt-0.5">(ptr - 8)</div>
+                </div>
+                <div className="p-3 rounded-lg border border-blue-500/40 bg-blue-950/20 text-center sm:col-span-2">
+                  <div className="text-blue-400 font-bold">Your Allocated Payload Space</div>
+                  <div className="text-[11px] text-slate-400 mt-1">Returned pointer starts here: ptr</div>
+                  <div className="text-[10px] text-blue-500/80 mt-0.5">32, 64, or N bytes of requested user memory</div>
+                </div>
+              </div>
+            </div>
+
+            <p className="prose">
+              When you call <code className="code-pill font-mono">free(ptr)</code>, the allocator evaluates:
+              <br />
+              <code className="code-pill font-mono">auto* header = reinterpret_cast&lt;ChunkHeader*&gt;(reinterpret_cast&lt;char*&gt;(ptr) - sizeof(ChunkHeader));</code>
+            </p>
+            <p className="prose">
+              <strong>The Problem for High-Performance Systems:</strong> If you allocate 1,000,000 small 8-byte objects, glibc burns another 8 to 16 bytes of metadata per object. That means <strong>50% to 66% of your cache and RAM is wasted on allocator metadata headers</strong> instead of your actual business data!
+            </p>
+
+            <MicroChallengeEngine challenge={challenge3} />
+          </section>
+
           {/* Section 2.3 */}
+          <section id="sec-stage2-code-demo" className="lesson-section">
+            <h2>2.3 — Empirical C++ Demo: OS Heap Latency Jitter vs Custom Buffer</h2>
+            <p className="prose">
+              Here is a runnable C++ comparison showing the real-world difference between naive OS heap allocations and pre-allocating an upfront continuous buffer:
+            </p>
+
+            <ProductionCodeBlock
+              title="OS Heap Jitter vs Upfront Pre-allocated Buffer"
+              badge="C++20 Empirical Study"
+              description="Benchmark the distribution of malloc/free vs pre-allocated placement new across 100,000 allocations."
+              compileCommand="g++ -std=c++20 -O3 heap_jitter_demo.cpp -o heap_demo && ./heap_demo"
+              files={[
+                {
+                  filename: 'heap_jitter_demo.cpp',
+                  language: 'cpp',
+                  code: HEAP_JITTER_CODE,
+                },
+                {
+                  filename: 'user_space_buffer.cpp',
+                  language: 'cpp',
+                  code: BUFFER_BYPASS_CODE,
+                },
+              ]}
+            />
+          </section>
+
+          {/* Section 2.4 */}
           <section id="sec-stage2-solution" className="lesson-section">
-            <h2>2.2 — The Paradigm Shift: Custom Allocators</h2>
+            <h2>2.4 — The Paradigm Shift: Custom Allocators</h2>
             <p className="prose">
               How do the best engineering teams solve this?
             </p>

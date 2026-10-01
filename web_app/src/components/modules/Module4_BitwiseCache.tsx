@@ -7,6 +7,7 @@ import { AnalogyCard } from '@/components/common/AnalogyCard';
 import { QuantNote } from '@/components/common/QuantNote';
 import { BitwiseAlignmentLab } from '@/components/simulators/BitwiseAlignmentLab';
 import { CacheLineVisualizer } from '@/components/simulators/CacheLineVisualizer';
+import { ProductionCodeBlock } from '@/components/code/ProductionCodeBlock';
 
 interface Module4Props {
   onSelectConcept: (id: string) => void;
@@ -142,6 +143,102 @@ export const Module4_BitwiseCache: React.FC<Module4Props> = ({
                 </div>
               </div>
             </div>
+          </section>
+
+          {/* Section 6.5 - Production C++20 Memory Utilities & Microarchitecture Benchmark */}
+          <section id="sec-p4-source" className="lesson-section">
+            <h2>6.5 — Production C++20 Memory Utilities &amp; Benchmark Driver</h2>
+            <p className="prose">
+              Here is the complete <code className="code-pill">memory_utils.hpp</code> header that powers all low-level alignment math and compiler barriers across all our allocators, paired with a runnable verification benchmark:
+            </p>
+
+            <ProductionCodeBlock
+              title="Hardware Memory Utilities & Microarchitecture"
+              subtitle="Production C++20 bitwise power-of-two alignment arithmetic, cache line isolation, and compiler escape barriers."
+              tabs={[
+                {
+                  filename: 'memory_utils.hpp',
+                  language: 'C++20 Header',
+                  code: `#pragma once
+#include <cstddef>
+#include <cstdint>
+
+namespace memory_allocator {
+
+// 1-Clock-Cycle Bitwise Alignment Helper
+// Enforces power-of-two alignment boundaries without modulo division
+inline uintptr_t align_up(uintptr_t address, size_t alignment) noexcept {
+    return (address + alignment - 1) & ~(static_cast<uintptr_t>(alignment) - 1);
+}
+
+inline bool is_aligned(const void* ptr, size_t alignment) noexcept {
+    return (reinterpret_cast<uintptr_t>(ptr) & (alignment - 1)) == 0;
+}
+
+// Compiler Escape Barrier: Prevents optimizer from dead-code eliminating allocation benchmarks
+inline void escape(void* p) noexcept {
+#if defined(__GNUG__) || defined(__clang__)
+    asm volatile("" : : "g"(p) : "memory");
+#elif defined(_MSC_VER)
+    ::MemoryBarrier();
+#endif
+}
+
+} // namespace memory_allocator`,
+                },
+                {
+                  filename: 'main.cpp',
+                  language: 'C++20 Benchmark Suite',
+                  runCommand: 'g++ -std=c++20 -O3 -Wall -Wextra main.cpp -o bitwise_demo && ./bitwise_demo',
+                  code: `#include "memory_utils.hpp"
+#include <iostream>
+#include <chrono>
+#include <atomic>
+#include <cassert>
+
+// Struct with naive member ordering (Wastes 11 bytes on padding)
+struct NaiveOrder {
+    char   side;   // 1 byte + 7 bytes padding
+    double price;  // 8 bytes
+    int    shares; // 4 bytes + 4 bytes padding at end
+};
+
+// Struct with quant-optimized member ordering (Zero wasted padding)
+struct OptimizedOrder {
+    double price;  // 8 bytes
+    int    shares; // 4 bytes
+    char   side;   // 1 byte (+ 3 bytes tail padding)
+};
+
+// Cache line false-sharing prevention
+struct alignas(64) CoreIndependentCounter {
+    std::atomic<uint64_t> count{0};
+};
+
+int main() {
+    std::cout << "=== Low-Level Systems C++: Hardware Sympathy & Caches ===\\n";
+
+    // 1. Bitwise Alignment vs Modulo Division
+    uintptr_t test_addr = 0x1005;
+    uintptr_t aligned = memory_allocator::align_up(test_addr, 8);
+    std::cout << "Original Address: 0x" << std::hex << test_addr 
+              << " -> 8-Byte Aligned: 0x" << aligned << std::dec << "\\n";
+    assert(memory_allocator::is_aligned(reinterpret_cast<void*>(aligned), 8));
+
+    // 2. Struct Memory Footprint Comparison
+    std::cout << "sizeof(NaiveOrder):     " << sizeof(NaiveOrder) << " bytes (Wastes 11 bytes!)\\n";
+    std::cout << "sizeof(OptimizedOrder): " << sizeof(OptimizedOrder) << " bytes (Saves 33% memory!)\\n";
+
+    // 3. Cache Line Isolation (False Sharing Guard)
+    std::cout << "sizeof(CoreIndependentCounter): " << sizeof(CoreIndependentCounter)
+              << " bytes (Guaranteed dedicated 64B L1 Cache Line!)\\n";
+    std::cout << "SUCCESS: Mechanical sympathy achieved with CPU microarchitecture!\\n";
+
+    return 0;
+}`,
+                },
+              ]}
+            />
 
             <div className="mt-10 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 pt-6 border-t border-slate-200 dark:border-slate-800">
               {onPrevModule && (

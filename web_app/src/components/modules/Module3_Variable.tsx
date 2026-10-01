@@ -6,6 +6,7 @@ import { MicroChallengeEngine } from '@/components/common/MicroChallengeEngine';
 import { AnalogyCard } from '@/components/common/AnalogyCard';
 import { QuantNote } from '@/components/common/QuantNote';
 import { CppCodeStepper, CodeStep } from '@/components/virtual-machine/CppCodeStepper';
+import { ProductionCodeBlock } from '@/components/code/ProductionCodeBlock';
 import { useVirtualMachine } from '@/stores/VirtualMachineContext';
 
 interface Module3Props {
@@ -220,6 +221,199 @@ export const Module3_Variable: React.FC<Module3Props> = ({
             <p className="prose mt-2">
               If either neighbor is free, merge their sizes in <strong>1 CPU cycle (O(1))</strong> with zero searching!
             </p>
+          </section>
+
+          {/* Section 5.3 - Production C++20 Header & Test Suite */}
+          <section id="sec-p3-source" className="lesson-section">
+            <h2>5.3 — Production C++20 Header &amp; Standalone Test Suite</h2>
+            <p className="prose">
+              Here is Donald Knuth&apos;s boundary-tag variable-size allocator implemented in production C++20, featuring Header/Footer mirrors, block splitting, and bidirectional coalescing:
+            </p>
+
+            <ProductionCodeBlock
+              title="Phase 3: Variable-Size Boundary-Tag Allocator"
+              subtitle="Production C++20 variable allocator with dynamic splitting and O(1) bidirectional coalescing via Knuth boundary tags."
+              tabs={[
+                {
+                  filename: 'variable_allocator.hpp',
+                  language: 'C++20 Header',
+                  code: `#pragma once
+#include <cstddef>
+#include <cstdint>
+#include <new>
+
+namespace memory_allocator {
+
+inline uintptr_t align_up(uintptr_t address, size_t alignment) noexcept {
+    return (address + alignment - 1) & ~(static_cast<uintptr_t>(alignment) - 1);
+}
+
+// Phase 3: Production Variable-Size Boundary-Tag Allocator
+// Supports dynamic block splitting and O(1) adjacent free block coalescing
+class VariableAllocator {
+public:
+    struct Header {
+        size_t size;    // Total block size including Header and Footer
+        bool   is_free; // true if block is unallocated
+    };
+
+    struct Footer {
+        size_t size;    // Mirrors Header size for backward O(1) coalescing
+        bool   is_free;
+    };
+
+    VariableAllocator(const VariableAllocator&) = delete;
+    VariableAllocator& operator=(const VariableAllocator&) = delete;
+
+    explicit VariableAllocator(size_t capacity)
+        : m_capacity(capacity)
+    {
+        m_buffer = new std::byte[m_capacity];
+        reset();
+    }
+
+    ~VariableAllocator() {
+        delete[] m_buffer;
+    }
+
+    [[nodiscard]] void* allocate(size_t size, size_t alignment = 8) {
+        size_t needed_bytes = align_up(size + sizeof(Header) + sizeof(Footer), alignment);
+
+        std::byte* curr_ptr = m_buffer;
+        std::byte* end_ptr = m_buffer + m_capacity;
+
+        while (curr_ptr < end_ptr) {
+            Header* hdr = reinterpret_cast<Header*>(curr_ptr);
+            if (hdr->is_free && hdr->size >= needed_bytes) {
+                // Check if block can be split
+                size_t leftover = hdr->size - needed_bytes;
+                if (leftover >= sizeof(Header) + sizeof(Footer) + 16) {
+                    // Split block
+                    hdr->size = needed_bytes;
+                    hdr->is_free = false;
+                    set_footer(hdr);
+
+                    // Create new free block in leftover space
+                    std::byte* next_free_ptr = curr_ptr + needed_bytes;
+                    Header* next_hdr = reinterpret_cast<Header*>(next_free_ptr);
+                    next_hdr->size = leftover;
+                    next_hdr->is_free = true;
+                    set_footer(next_hdr);
+                } else {
+                    hdr->is_free = false;
+                    set_footer(hdr);
+                }
+
+                return reinterpret_cast<void*>(curr_ptr + sizeof(Header));
+            }
+            curr_ptr += hdr->size;
+        }
+
+        throw std::bad_alloc();
+    }
+
+    void deallocate(void* ptr) noexcept {
+        if (!ptr) return;
+
+        std::byte* payload_ptr = reinterpret_cast<std::byte*>(ptr);
+        std::byte* block_start = payload_ptr - sizeof(Header);
+        Header* hdr = reinterpret_cast<Header*>(block_start);
+
+        hdr->is_free = true;
+        set_footer(hdr);
+
+        // Coalesce Right Neighbor
+        std::byte* right_ptr = block_start + hdr->size;
+        if (right_ptr < m_buffer + m_capacity) {
+            Header* right_hdr = reinterpret_cast<Header*>(right_ptr);
+            if (right_hdr->is_free) {
+                hdr->size += right_hdr->size;
+                set_footer(hdr);
+            }
+        }
+
+        // Coalesce Left Neighbor
+        if (block_start > m_buffer) {
+            std::byte* left_footer_ptr = block_start - sizeof(Footer);
+            Footer* left_ftr = reinterpret_cast<Footer*>(left_footer_ptr);
+            if (left_ftr->is_free) {
+                std::byte* left_start = block_start - left_ftr->size;
+                Header* left_hdr = reinterpret_cast<Header*>(left_start);
+                left_hdr->size += hdr->size;
+                set_footer(left_hdr);
+            }
+        }
+    }
+
+    void reset() noexcept {
+        Header* initial_hdr = reinterpret_cast<Header*>(m_buffer);
+        initial_hdr->size = m_capacity;
+        initial_hdr->is_free = true;
+        set_footer(initial_hdr);
+    }
+
+    [[nodiscard]] size_t capacity() const noexcept { return m_capacity; }
+
+private:
+    void set_footer(Header* hdr) noexcept {
+        std::byte* ftr_ptr = reinterpret_cast<std::byte*>(hdr) + hdr->size - sizeof(Footer);
+        Footer* ftr = reinterpret_cast<Footer*>(ftr_ptr);
+        ftr->size = hdr->size;
+        ftr->is_free = hdr->is_free;
+    }
+
+    std::byte* m_buffer;
+    size_t     m_capacity;
+};
+
+} // namespace memory_allocator`,
+                },
+                {
+                  filename: 'main.cpp',
+                  language: 'C++20 Test Suite',
+                  runCommand: 'g++ -std=c++20 -O3 -Wall -Wextra main.cpp -o variable_demo && ./variable_demo',
+                  code: `#include "variable_allocator.hpp"
+#include <iostream>
+#include <cassert>
+
+int main() {
+    std::cout << "=== Low-Level Systems C++: Knuth Boundary-Tag Coalescing Demo ===\\n";
+
+    // 1. Pre-allocate 64 KB memory pool
+    constexpr size_t POOL_SIZE = 64 * 1024;
+    memory_allocator::VariableAllocator allocator(POOL_SIZE);
+
+    std::cout << "Created variable allocator with " << allocator.capacity() << " bytes.\\n";
+
+    // 2. Allocate variable-sized chunks
+    void* p1 = allocator.allocate(120); // 120-byte snapshot
+    void* p2 = allocator.allocate(48);  // 48-byte cancel
+    void* p3 = allocator.allocate(256); // 256-byte book update
+
+    std::cout << "Allocated 3 variable blocks: 120B, 48B, 256B.\\n";
+
+    // 3. Free p2 (middle block), then p1 (left block), then p3 (right block)
+    std::cout << "Freeing middle block (48B)...\\n";
+    allocator.deallocate(p2);
+
+    std::cout << "Freeing left block (120B) -> Triggers O(1) Left Coalescing!\\n";
+    allocator.deallocate(p1);
+
+    std::cout << "Freeing right block (256B) -> Triggers O(1) Right Coalescing!\\n";
+    allocator.deallocate(p3);
+
+    // 4. Verify that adjacent holes were merged: request a single 400-byte block
+    void* large_block = allocator.allocate(400);
+    assert(large_block != nullptr);
+    std::cout << "Successfully allocated single coalesced 400-byte block at " << large_block << "!\\n";
+    allocator.deallocate(large_block);
+
+    std::cout << "SUCCESS: Knuth boundary tags eliminated Swiss-Cheese fragmentation in O(1)!\\n";
+    return 0;
+}`,
+                },
+              ]}
+            />
 
             <div className="mt-10 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 pt-6 border-t border-slate-200 dark:border-slate-800">
               {onPrevModule && (

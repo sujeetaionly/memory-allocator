@@ -6,6 +6,7 @@ import { MicroChallengeEngine } from '@/components/common/MicroChallengeEngine';
 import { AnalogyCard } from '@/components/common/AnalogyCard';
 import { QuantNote } from '@/components/common/QuantNote';
 import { CppCodeStepper, CodeStep } from '@/components/virtual-machine/CppCodeStepper';
+import { ProductionCodeBlock } from '@/components/code/ProductionCodeBlock';
 import { useVirtualMachine } from '@/stores/VirtualMachineContext';
 
 interface Module2Props {
@@ -223,6 +224,154 @@ export const Module2_FreeList: React.FC<Module2Props> = ({
               node-&gt;next = m_head;<br />
               m_head = node; // Push head in 2 cycles!
             </div>
+          </section>
+
+          {/* Section 4.3 - Production C++20 Header & Test Suite */}
+          <section id="sec-p2-source" className="lesson-section">
+            <h2>4.3 — Production C++20 Header &amp; Standalone Test Suite</h2>
+            <p className="prose">
+              Here is the complete, production-grade C++20 header implementation using embedded unions (<code className="code-pill">union NodeUnion</code>) and a standalone benchmark test driver:
+            </p>
+
+            <ProductionCodeBlock
+              title="Phase 2: Fixed-Size Free-List Allocator"
+              subtitle="Production C++20 intrusive pool allocator with zero per-block metadata overhead via embedded unions."
+              tabs={[
+                {
+                  filename: 'free_list_allocator.hpp',
+                  language: 'C++20 Header',
+                  code: `#pragma once
+#include <cstddef>
+#include <cstdint>
+#include <new>
+
+namespace memory_allocator {
+
+// Phase 2: Production Fixed-Size Free-List Allocator
+// Zero per-block metadata overhead using embedded memory unions (union NodeUnion)
+template <size_t ChunkSize = 64>
+class FreeListAllocator {
+public:
+    static_assert(ChunkSize >= sizeof(void*), "ChunkSize must be at least pointer size (8 bytes)");
+
+    FreeListAllocator(const FreeListAllocator&) = delete;
+    FreeListAllocator& operator=(const FreeListAllocator&) = delete;
+
+    explicit FreeListAllocator(size_t total_chunks)
+        : m_total_chunks(total_chunks), m_free_head(nullptr)
+    {
+        size_t total_bytes = m_total_chunks * sizeof(NodeUnion);
+        m_buffer = new std::byte[total_bytes];
+        reset();
+    }
+
+    ~FreeListAllocator() {
+        delete[] m_buffer;
+    }
+
+    [[nodiscard]] void* allocate() {
+        if (!m_free_head) {
+            throw std::bad_alloc();
+        }
+        FreeNode* node = m_free_head;
+        m_free_head = m_free_head->next;
+        return reinterpret_cast<void*>(node);
+    }
+
+    void deallocate(void* ptr) noexcept {
+        if (!ptr) return;
+        FreeNode* node = reinterpret_cast<FreeNode*>(ptr);
+        node->next = m_free_head;
+        m_free_head = node;
+    }
+
+    void reset() noexcept {
+        m_free_head = nullptr;
+        NodeUnion* chunks = reinterpret_cast<NodeUnion*>(m_buffer);
+        for (size_t i = 0; i < m_total_chunks; ++i) {
+            chunks[i].free_node.next = m_free_head;
+            m_free_head = &chunks[i].free_node;
+        }
+    }
+
+    [[nodiscard]] size_t total_chunks() const noexcept { return m_total_chunks; }
+
+private:
+    struct FreeNode {
+        FreeNode* next;
+    };
+
+    union NodeUnion {
+        FreeNode free_node;
+        alignas(std::max_align_t) std::byte data[ChunkSize];
+    };
+
+    size_t      m_total_chunks;
+    std::byte*  m_buffer;
+    FreeNode*   m_free_head;
+};
+
+} // namespace memory_allocator`,
+                },
+                {
+                  filename: 'main.cpp',
+                  language: 'C++20 Test Suite',
+                  runCommand: 'g++ -std=c++20 -O3 -Wall -Wextra main.cpp -o freelist_demo && ./freelist_demo',
+                  code: `#include "free_list_allocator.hpp"
+#include <iostream>
+#include <vector>
+#include <chrono>
+
+struct OrderSlot {
+    uint64_t client_id;
+    uint32_t order_count;
+    char     routing_tag[12];
+};
+
+int main() {
+    std::cout << "=== Low-Level Systems C++: Free-List Pool Demo ===\\n";
+
+    // 1. Pre-slice pool into 10,000 uniform 64-byte slots
+    constexpr size_t POOL_CAPACITY = 10000;
+    memory_allocator::FreeListAllocator<64> pool(POOL_CAPACITY);
+
+    std::cout << "Created pool with " << pool.total_chunks() << " slots (64B each).\\n";
+
+    // 2. Allocate 1,000 slots in O(1)
+    std::vector<void*> active_ptrs;
+    active_ptrs.reserve(1000);
+
+    auto start = std::chrono::high_resolution_clock::now();
+    for (size_t i = 0; i < 1000; ++i) {
+        active_ptrs.push_back(pool.allocate());
+    }
+    auto alloc_time = std::chrono::high_resolution_clock::now() - start;
+
+    std::cout << "Allocated 1,000 slots in: "
+              << std::chrono::duration_cast<std::chrono::nanoseconds>(alloc_time).count()
+              << " ns (avg "
+              << std::chrono::duration_cast<std::chrono::nanoseconds>(alloc_time).count() / 1000.0
+              << " ns/pop)!\\n";
+
+    // 3. Recycle individual slots in O(1) without wiping the pool!
+    start = std::chrono::high_resolution_clock::now();
+    for (void* p : active_ptrs) {
+        pool.deallocate(p);
+    }
+    auto free_time = std::chrono::high_resolution_clock::now() - start;
+
+    std::cout << "Recycled 1,000 slots in: "
+              << std::chrono::duration_cast<std::chrono::nanoseconds>(free_time).count()
+              << " ns (avg "
+              << std::chrono::duration_cast<std::chrono::nanoseconds>(free_time).count() / 1000.0
+              << " ns/push)!\\n";
+    std::cout << "SUCCESS: Zero heap fragmentation, zero metadata bytes wasted!\\n";
+
+    return 0;
+}`,
+                },
+              ]}
+            />
 
             <div className="mt-10 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 pt-6 border-t border-slate-200 dark:border-slate-800">
               {onPrevModule && (
