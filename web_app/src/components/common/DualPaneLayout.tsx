@@ -10,7 +10,7 @@ import { ArchitectureFlowDiagram } from '@/components/common/ArchitectureFlowDia
 import {
   ALLOCATOR_MODULES,
   COURSE_TIERS,
-  SIDEBAR_CATEGORIES_BY_TIER,
+  COURSE_ROADMAP,
   CourseTierId,
   ModuleProgressStatus,
 } from '@/data/allocatorCurriculum';
@@ -47,18 +47,12 @@ export const DualPaneLayout: React.FC<DualPaneLayoutProps> = ({
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [ramDrawerOpen, setRamDrawerOpen] = useState(false);
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
-  const [tierDropdownOpen, setTierDropdownOpen] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({
-    'Getting Started': true,
-    'Memory Fundamentals': true,
-    'The Heap Problem': true,
-    'Phase 1: Bump Allocation': true,
-    'Phase 2: Intrusive Pool': true,
-    'Phase 3: Boundary Tags': true,
-    'Mechanical Sympathy': true,
-    'Quant Engineering Mastery': true,
-    'Curriculum Roadmap': true,
-    'Full Systems Stack': true,
+    'Foundations · Physical RAM': true,
+    'The C++ Machine & Heap': true,
+    'Custom Allocator Engines': true,
+    'Hardware Sympathy & Caches': true,
+    'Quant Systems & Capstone': true,
   });
 
   const activeStageId: ModuleId = (customStageId || progress.currentStageId || 'stage-0') as ModuleId;
@@ -96,9 +90,11 @@ export const DualPaneLayout: React.FC<DualPaneLayoutProps> = ({
   const currentStatusBadge =
     statusOptions.find((s) => s.id === currentStatus) || statusOptions[0];
 
-  const sidebarCategories =
-    SIDEBAR_CATEGORIES_BY_TIER[currentTierId] ||
-    SIDEBAR_CATEGORIES_BY_TIER.foundations;
+  const sidebarCategories = COURSE_ROADMAP.map((r) => ({
+    category: r.categoryTitle,
+    moduleIds: r.moduleIds,
+    tier: r.tier,
+  }));
 
   const renderSidebarContent = () => (
     <div className="flex h-screen flex-col bg-white dark:bg-dark-surface border-r border-gray-200 dark:border-gray-800 w-80 select-none">
@@ -126,52 +122,21 @@ export const DualPaneLayout: React.FC<DualPaneLayoutProps> = ({
         </button>
       </div>
 
-      {/* Tier Selector Row */}
-      <div className="relative shrink-0 border-b border-gray-200 dark:border-gray-800">
+      {/* Course Index Quick Link & Roadmap Overview Row */}
+      <div className="shrink-0 border-b border-gray-200 dark:border-gray-800 px-4 py-2.5 flex items-center justify-between gap-2 bg-gray-50/70 dark:bg-gray-900/40">
         <button
-          onClick={() => setTierDropdownOpen(!tierDropdownOpen)}
-          className="w-full flex items-center justify-between px-4 py-2.5 text-sm font-semibold text-gray-700 dark:text-dark-high-emphasis hover:bg-gray-50 dark:hover:bg-gray-800/60 transition cursor-pointer"
+          onClick={() => handleSelectModule('index')}
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
         >
-          <span className="flex items-center gap-2 truncate">
-            <span className="h-2 w-2 rounded-full bg-blue-500 shrink-0" />
-            <span className="truncate">{tierMeta.name}</span>
-          </span>
-          <svg className="h-4 w-4 text-gray-400 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
+          <span>Course Overview</span>
         </button>
 
-        {tierDropdownOpen && (
-          <div className="absolute top-full left-0 z-50 w-full bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-lg py-1">
-            <button
-              onClick={() => {
-                setTierDropdownOpen(false);
-                handleSelectModule('index');
-              }}
-              className="w-full px-4 py-2 text-left text-xs font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-800 cursor-pointer"
-            >
-              📋 Course Roadmap (All Tiers)
-            </button>
-            {(Object.keys(COURSE_TIERS) as CourseTierId[]).map((tId) => (
-              <button
-                key={tId}
-                onClick={() => {
-                  setSelectedTier(tId);
-                  setTierDropdownOpen(false);
-                  const firstModInTier = SIDEBAR_CATEGORIES_BY_TIER[tId]?.[0]?.moduleIds[0] || 'stage-0';
-                  handleSelectModule(firstModInTier);
-                }}
-                className={`w-full px-4 py-2 text-left text-xs transition cursor-pointer ${
-                  currentTierId === tId
-                    ? 'bg-gray-100 dark:bg-gray-800 font-bold text-gray-900 dark:text-white'
-                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50'
-                }`}
-              >
-                {COURSE_TIERS[tId].name}
-              </button>
-            ))}
-          </div>
-        )}
+        <span className="text-[11px] font-mono text-gray-500 dark:text-gray-400">
+          5 Tiers · 9 Modules
+        </span>
       </div>
 
       {/* Accordion Categories & Module Items */}
@@ -231,13 +196,16 @@ export const DualPaneLayout: React.FC<DualPaneLayoutProps> = ({
                         className={`link-with-progress-container cursor-pointer transition ${progressClass}`}
                       >
                         <div
-                          className={`link-with-progress-link py-2 pr-4 pl-12 text-sm leading-snug ${
+                          className={`link-with-progress-link py-2 pr-4 pl-12 text-sm leading-snug flex items-center justify-between gap-1.5 ${
                             isActive
                               ? 'link-with-progress-link--active font-semibold'
                               : ''
                           }`}
                         >
                           <span className="truncate">{mMeta.shortTitle || mMeta.title}</span>
+                          <span className="text-[10px] shrink-0">
+                            {st === 'complete' ? '🟢' : st === 'reading' || st === 'practicing' ? '🟡' : ''}
+                          </span>
                         </div>
                       </div>
                     );

@@ -6,6 +6,7 @@ import { useLearner } from '@/stores/LearnerStore';
 import {
   COURSE_TIERS,
   ALLOCATOR_MODULES,
+  COURSE_ROADMAP,
   CourseTierId,
   ModuleProgressStatus,
 } from '@/data/allocatorCurriculum';
@@ -22,6 +23,7 @@ export const CourseIndex: React.FC<CourseIndexProps> = ({ onSelectTopic }) => {
 
   const allModulesList = [
     ALLOCATOR_MODULES['stage-0'],
+    ALLOCATOR_MODULES['sandbox'],
     ALLOCATOR_MODULES['stage-1'],
     ALLOCATOR_MODULES['stage-2'],
     ALLOCATOR_MODULES['stage-3'],
@@ -29,7 +31,6 @@ export const CourseIndex: React.FC<CourseIndexProps> = ({ onSelectTopic }) => {
     ALLOCATOR_MODULES['stage-5'],
     ALLOCATOR_MODULES['stage-6'],
     ALLOCATOR_MODULES['stage-7'],
-    ALLOCATOR_MODULES['sandbox'],
   ];
 
   // Calculate module status counts
@@ -53,43 +54,7 @@ export const CourseIndex: React.FC<CourseIndexProps> = ({ onSelectTopic }) => {
   const inProgressProblems = completedProblems > 0 && completedProblems < totalProblems ? 2 : 0;
   const notStartedProblems = Math.max(0, totalProblems - completedProblems - inProgressProblems);
 
-  const syllabusCategories: {
-    categoryTitle: string;
-    tier: CourseTierId;
-    subtitle: string;
-    moduleIds: ModuleId[];
-  }[] = [
-    {
-      categoryTitle: 'Getting Started · Physical RAM',
-      tier: 'foundations',
-      subtitle: 'Physical silicon capacitors, 8-bit bytes, hexadecimal offsets, and the 64-byte hardware lab.',
-      moduleIds: ['stage-0', 'sandbox'],
-    },
-    {
-      categoryTitle: 'The C++ Machine & Heap',
-      tier: 'machine-model',
-      subtitle: 'How C++ types map to byte spans, pointers as address envelopes, stack frames, and the OS heap bottleneck.',
-      moduleIds: ['stage-1', 'stage-2'],
-    },
-    {
-      categoryTitle: 'Custom Allocator Engines',
-      tier: 'allocator-engines',
-      subtitle: 'Production C++20 memory allocators: Bump Arena (42x), Free-List (125x), and Knuth Boundary Tags.',
-      moduleIds: ['stage-3', 'stage-4', 'stage-5'],
-    },
-    {
-      categoryTitle: 'Hardware Sympathy & Caches',
-      tier: 'hardware-sympathy',
-      subtitle: '1-cycle bitwise alignment math, 64-byte L1 cache lines, struct padding elimination, and false sharing.',
-      moduleIds: ['stage-6'],
-    },
-    {
-      categoryTitle: 'Quant Systems & Capstone',
-      tier: 'quant-capstone',
-      subtitle: 'P99.99 tail latency, 1,000,000-op benchmarks, flashcards, quiz, and resume bullet generator.',
-      moduleIds: ['stage-7'],
-    },
-  ];
+  const syllabusCategories = COURSE_ROADMAP;
 
   const visibleCategories =
     filterMode === 'all'

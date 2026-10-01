@@ -110,19 +110,19 @@ export const COURSE_TIERS: Record<CourseTierId, CourseTierMeta> = {
 export const ALLOCATOR_MODULES: Record<string, ModuleMeta> = {
   'stage-0': {
     id: 'stage-0',
-    title: 'The Physical Machine & The Illusion of Memory',
-    shortTitle: 'The Physical Machine',
+    title: 'Stage 0: The Physical Machine & The Illusion of Memory',
+    shortTitle: 'Stage 0: Physical Machine & RAM',
     tier: 'foundations',
     tierLabel: 'Foundations',
-    category: 'Getting Started',
+    category: 'Foundations · Physical RAM',
     authors: 'Low-Level Systems Architecture Group',
     contributors: 'Hardware Telemetry Lab',
     subtitle: 'Understanding bare silicon capacitors, 8-bit bytes, hexadecimal addresses, and the CPU memory wall.',
     frequency: 4,
     frequencyLabel: 'Essential Architecture',
     updatedAgo: '2 days ago',
-    nextModule: 'stage-1',
-    nextLabel: 'The C++ Machine Model',
+    nextModule: 'sandbox',
+    nextLabel: 'RAM Sandbox Studio',
     sections: [
       { id: 'sec-stage0-bits', title: 'What is a Byte, Really?' },
       { id: 'sec-stage0-hex', title: 'Hexadecimal Memory Addresses' },
@@ -158,21 +158,21 @@ export const ALLOCATOR_MODULES: Record<string, ModuleMeta> = {
   },
   'stage-1': {
     id: 'stage-1',
-    title: 'The C++ Machine Model, Pointers & The Stack',
-    shortTitle: 'C++ Model, Pointers & Stack',
+    title: 'Stage 1: The C++ Machine Model, Pointers & The Stack',
+    shortTitle: 'Stage 1: C++ Machine & Pointers',
     tier: 'machine-model',
     tierLabel: 'The C++ Machine',
-    category: 'Memory Fundamentals',
+    category: 'The C++ Machine & Heap',
     authors: 'Low-Level Systems Architecture Group',
     contributors: 'Compiler & ABI Lab',
     subtitle: 'Demystifying C++ data types as raw byte spans, pointers as address envelopes, and RSP stack frames.',
     frequency: 4,
     frequencyLabel: 'Essential Architecture',
     updatedAgo: '4 days ago',
-    prevModule: 'stage-0',
-    prevLabel: 'The Physical Machine',
+    prevModule: 'sandbox',
+    prevLabel: 'RAM Sandbox Studio',
     nextModule: 'stage-2',
-    nextLabel: 'The OS Heap Bottleneck',
+    nextLabel: 'Stage 2: OS Heap Bottleneck',
     sections: [
       { id: 'sec-stage1-types', title: '1.1 Data Types are Byte Spans' },
       { id: 'sec-stage1-pointers', title: '1.2 Pointers Demystified (& and *)' },
@@ -217,11 +217,11 @@ export const ALLOCATOR_MODULES: Record<string, ModuleMeta> = {
   },
   'stage-2': {
     id: 'stage-2',
-    title: 'Dynamic Memory & The OS Heap Bottleneck',
-    shortTitle: 'The OS Heap Bottleneck',
+    title: 'Stage 2: Dynamic Memory & The OS Heap Bottleneck',
+    shortTitle: 'Stage 2: OS Heap Bottleneck',
     tier: 'machine-model',
     tierLabel: 'The C++ Machine',
-    category: 'The Heap Problem',
+    category: 'The C++ Machine & Heap',
     authors: 'Low-Level Systems Architecture Group',
     contributors: 'Low-Latency Systems Engineering',
     subtitle: 'Why standard std::malloc and operator new fail in microsecond-critical loops: syscalls, mutex locks, and fragmentation.',
@@ -229,9 +229,9 @@ export const ALLOCATOR_MODULES: Record<string, ModuleMeta> = {
     frequencyLabel: 'Core Principle',
     updatedAgo: '1 week ago',
     prevModule: 'stage-1',
-    prevLabel: 'C++ Model, Pointers & Stack',
+    prevLabel: 'Stage 1: C++ Machine & Pointers',
     nextModule: 'stage-3',
-    nextLabel: 'Phase 1: Linear Arena',
+    nextLabel: 'Stage 3: Linear Arena',
     sections: [
       { id: 'sec-stage2-traps', title: '2.1 The Three Fatal Flaws of Malloc' },
       { id: 'sec-stage2-hidden-header', title: '2.2 Anatomy of a Malloc Chunk' },
@@ -267,8 +267,8 @@ export const ALLOCATOR_MODULES: Record<string, ModuleMeta> = {
   },
   'stage-3': {
     id: 'stage-3',
-    title: 'Phase 1: Linear Arena (Bump Pointer) Allocator',
-    shortTitle: 'Phase 1: Linear Arena',
+    title: 'Stage 3: Phase 1: Linear Arena (Bump Pointer) Allocator',
+    shortTitle: 'Stage 3: Linear Arena Allocator',
     tier: 'allocator-engines',
     tierLabel: 'Custom Allocators',
     category: 'Custom Allocator Engines',
@@ -279,9 +279,9 @@ export const ALLOCATOR_MODULES: Record<string, ModuleMeta> = {
     frequencyLabel: 'Essential Architecture',
     updatedAgo: '3 days ago',
     prevModule: 'stage-2',
-    prevLabel: 'The OS Heap Bottleneck',
+    prevLabel: 'Stage 2: OS Heap Bottleneck',
     nextModule: 'stage-4',
-    nextLabel: 'Phase 2: Free-List Pool',
+    nextLabel: 'Stage 4: Fixed-Size Free-List',
     sections: [
       { id: 'sec-p1-raw', title: '3.1 Raw Memory: std::byte[]' },
       { id: 'sec-p1-placement', title: '3.2 Placement new Objects' },
@@ -309,8 +309,8 @@ export const ALLOCATOR_MODULES: Record<string, ModuleMeta> = {
   },
   'stage-4': {
     id: 'stage-4',
-    title: 'Phase 2: Fixed-Size Free-List (Order Pool)',
-    shortTitle: 'Phase 2: Free-List Pool',
+    title: 'Stage 4: Phase 2: Fixed-Size Free-List (Order Pool)',
+    shortTitle: 'Stage 4: Fixed-Size Free-List',
     tier: 'allocator-engines',
     tierLabel: 'Custom Allocators',
     category: 'Custom Allocator Engines',
@@ -321,9 +321,9 @@ export const ALLOCATOR_MODULES: Record<string, ModuleMeta> = {
     frequencyLabel: 'Essential Architecture',
     updatedAgo: '2 days ago',
     prevModule: 'stage-3',
-    prevLabel: 'Phase 1: Linear Arena',
+    prevLabel: 'Stage 3: Linear Arena Allocator',
     nextModule: 'stage-5',
-    nextLabel: 'Phase 3: Variable Allocator',
+    nextLabel: 'Stage 5: Boundary-Tag Allocator',
     sections: [
       { id: 'sec-p2-union', title: '4.1 Zero-Overhead Embedded Union' },
       { id: 'sec-p2-o1', title: '4.2 O(1) Singly-Linked Push & Pop' },
@@ -350,8 +350,8 @@ export const ALLOCATOR_MODULES: Record<string, ModuleMeta> = {
   },
   'stage-5': {
     id: 'stage-5',
-    title: 'Phase 3: Variable-Size Boundary-Tag Allocator',
-    shortTitle: 'Phase 3: Variable Allocator',
+    title: 'Stage 5: Phase 3: Variable-Size Boundary-Tag Allocator',
+    shortTitle: 'Stage 5: Boundary-Tag Allocator',
     tier: 'allocator-engines',
     tierLabel: 'Custom Allocators',
     category: 'Custom Allocator Engines',
@@ -362,9 +362,9 @@ export const ALLOCATOR_MODULES: Record<string, ModuleMeta> = {
     frequencyLabel: 'Core Principle',
     updatedAgo: '5 days ago',
     prevModule: 'stage-4',
-    prevLabel: 'Phase 2: Free-List Pool',
+    prevLabel: 'Stage 4: Fixed-Size Free-List',
     nextModule: 'stage-6',
-    nextLabel: 'Hardware Sympathy & Caches',
+    nextLabel: 'Stage 6: Bitwise Alignment & Caches',
     sections: [
       { id: 'sec-p3-tags', title: '5.1 Donald Knuth Boundary Tags' },
       { id: 'sec-p3-coalesce', title: '5.2 Instant O(1) Neighbor Coalescing' },
@@ -391,11 +391,11 @@ export const ALLOCATOR_MODULES: Record<string, ModuleMeta> = {
   },
   'stage-6': {
     id: 'stage-6',
-    title: 'Hardware Reality: Bitwise Alignment & CPU Cache Lines',
-    shortTitle: 'Bitwise Alignment & Caches',
+    title: 'Stage 6: Hardware Reality: Bitwise Alignment & CPU Cache Lines',
+    shortTitle: 'Stage 6: Bitwise Alignment & Caches',
     tier: 'hardware-sympathy',
     tierLabel: 'Hardware Sympathy',
-    category: 'Mechanical Sympathy',
+    category: 'Hardware Sympathy & Caches',
     authors: 'Low-Level Systems Architecture Group',
     contributors: 'x86-64 Microarchitecture Lab',
     subtitle: 'Replacing slow division modulo with 1-cycle two’s complement bitwise AND, struct padding optimization, and false sharing.',
@@ -403,9 +403,9 @@ export const ALLOCATOR_MODULES: Record<string, ModuleMeta> = {
     frequencyLabel: 'Essential Architecture',
     updatedAgo: '1 day ago',
     prevModule: 'stage-5',
-    prevLabel: 'Phase 3: Variable Allocator',
+    prevLabel: 'Stage 5: Boundary-Tag Allocator',
     nextModule: 'stage-7',
-    nextLabel: 'Quant Capstone & Benchmarks',
+    nextLabel: 'Stage 7: Quant Capstone & Interview',
     sections: [
       { id: 'sec-p4-formula', title: '6.1 1-Clock-Cycle Alignment Formula' },
       { id: 'sec-p4-calc', title: '6.2 Interactive Bitwise Alignment Lab' },
@@ -434,11 +434,11 @@ export const ALLOCATOR_MODULES: Record<string, ModuleMeta> = {
   },
   'stage-7': {
     id: 'stage-7',
-    title: 'Systems Capstone: Benchmarks & Quant Interview War Room',
-    shortTitle: 'Quant Capstone & Interview',
+    title: 'Stage 7: Systems Capstone: Benchmarks & Quant Interview War Room',
+    shortTitle: 'Stage 7: Quant Capstone & Interview',
     tier: 'quant-capstone',
     tierLabel: 'Quant Systems',
-    category: 'Quant Engineering Mastery',
+    category: 'Quant Systems & Capstone',
     authors: 'Low-Level Systems Architecture Group',
     contributors: 'Low-Latency Systems Engineering',
     subtitle: 'P99.99 tail latency analysis, 1,000,000-operation benchmark suite, spaced-repetition flashcards, and interview war room.',
@@ -446,9 +446,7 @@ export const ALLOCATOR_MODULES: Record<string, ModuleMeta> = {
     frequencyLabel: 'Essential Architecture',
     updatedAgo: 'today',
     prevModule: 'stage-6',
-    prevLabel: 'Bitwise Alignment & Caches',
-    nextModule: 'sandbox',
-    nextLabel: 'Interactive RAM Sandbox',
+    prevLabel: 'Stage 6: Bitwise Alignment & Caches',
     sections: [
       { id: 'sec-stage7-tail', title: '7.1 The Tyranny of P99 Tail Latency' },
       { id: 'sec-stage7-matrix', title: '7.2 1,000,000 Ops Performance Matrix' },
@@ -484,18 +482,20 @@ export const ALLOCATOR_MODULES: Record<string, ModuleMeta> = {
   },
   sandbox: {
     id: 'sandbox',
-    title: 'Interactive 64-Byte Hardware RAM Sandbox Studio',
-    shortTitle: 'RAM Sandbox Studio',
+    title: 'RAM Sandbox Studio: 64-Byte Virtual Hardware Lab',
+    shortTitle: 'RAM Sandbox Studio (64B)',
     tier: 'foundations',
     tierLabel: 'Foundations',
-    category: 'Interactive Laboratory',
+    category: 'Foundations · Physical RAM',
     authors: 'Low-Level Systems Architecture Group',
     subtitle: 'Free-form experimentation studio for Linear Arena, Intrusive Free-List, and Boundary-Tag Variable Allocators.',
     frequency: 4,
     frequencyLabel: 'Essential Architecture',
     updatedAgo: 'today',
-    prevModule: 'stage-7',
-    prevLabel: 'Quant Capstone & Interview',
+    prevModule: 'stage-0',
+    prevLabel: 'Stage 0: Physical Machine & RAM',
+    nextModule: 'stage-1',
+    nextLabel: 'Stage 1: C++ Machine & Pointers',
     sections: [
       { id: 'sec-sandbox-studio', title: 'Live Allocator Mode Switcher' },
       { id: 'sec-sandbox-guide', title: 'Experimentation Scenarios' },
@@ -512,37 +512,59 @@ export const ALLOCATOR_MODULES: Record<string, ModuleMeta> = {
   },
 };
 
+export interface CourseRoadmapCategory {
+  id: CourseTierId;
+  tier: CourseTierId;
+  categoryTitle: string;
+  subtitle: string;
+  moduleIds: ModuleId[];
+}
+
+export const COURSE_ROADMAP: CourseRoadmapCategory[] = [
+  {
+    id: 'foundations',
+    tier: 'foundations',
+    categoryTitle: 'Foundations · Physical RAM',
+    subtitle: 'Physical silicon capacitors, 8-bit bytes, hexadecimal offsets, and the 64-byte hardware lab.',
+    moduleIds: ['stage-0', 'sandbox'],
+  },
+  {
+    id: 'machine-model',
+    tier: 'machine-model',
+    categoryTitle: 'The C++ Machine & Heap',
+    subtitle: 'How C++ types map to byte spans, pointers as address envelopes, stack frames, and the OS heap bottleneck.',
+    moduleIds: ['stage-1', 'stage-2'],
+  },
+  {
+    id: 'allocator-engines',
+    tier: 'allocator-engines',
+    categoryTitle: 'Custom Allocator Engines',
+    subtitle: 'Production C++20 memory allocators: Bump Arena (42x), Free-List (125x), and Knuth Boundary Tags.',
+    moduleIds: ['stage-3', 'stage-4', 'stage-5'],
+  },
+  {
+    id: 'hardware-sympathy',
+    tier: 'hardware-sympathy',
+    categoryTitle: 'Hardware Sympathy & Caches',
+    subtitle: '1-cycle bitwise alignment math, 64-byte L1 cache lines, struct padding elimination, and false sharing.',
+    moduleIds: ['stage-6'],
+  },
+  {
+    id: 'quant-capstone',
+    tier: 'quant-capstone',
+    categoryTitle: 'Quant Systems & Capstone',
+    subtitle: 'P99.99 tail latency, 1,000,000-op benchmarks, flashcards, quiz, and resume bullet generator.',
+    moduleIds: ['stage-7'],
+  },
+];
+
 export const SIDEBAR_CATEGORIES_BY_TIER: Record<
   CourseTierId,
   { category: string; moduleIds: ModuleId[] }[]
 > = {
-  foundations: [
-    { category: 'Getting Started', moduleIds: ['stage-0', 'sandbox'] },
-    {
-      category: 'Curriculum Roadmap',
-      moduleIds: ['stage-1', 'stage-2', 'stage-3', 'stage-4', 'stage-5', 'stage-6', 'stage-7'],
-    },
-  ],
-  'machine-model': [
-    { category: 'Memory Fundamentals', moduleIds: ['stage-0', 'stage-1'] },
-    { category: 'The Heap Problem', moduleIds: ['stage-2'] },
-    { category: 'Next Phase Preview', moduleIds: ['stage-3'] },
-  ],
-  'allocator-engines': [
-    { category: 'Phase 1: Bump Allocation', moduleIds: ['stage-3'] },
-    { category: 'Phase 2: Intrusive Pool', moduleIds: ['stage-4'] },
-    { category: 'Phase 3: Boundary Tags', moduleIds: ['stage-5'] },
-    { category: 'Interactive Laboratory', moduleIds: ['sandbox'] },
-  ],
-  'hardware-sympathy': [
-    { category: 'Mechanical Sympathy', moduleIds: ['stage-6'] },
-    { category: 'Allocator Prerequisites', moduleIds: ['stage-3', 'stage-4', 'stage-5'] },
-  ],
-  'quant-capstone': [
-    { category: 'Quant Engineering Mastery', moduleIds: ['stage-7'] },
-    {
-      category: 'Full Systems Stack',
-      moduleIds: ['stage-3', 'stage-4', 'stage-5', 'stage-6', 'sandbox'],
-    },
-  ],
+  foundations: COURSE_ROADMAP.map((r) => ({ category: r.categoryTitle, moduleIds: r.moduleIds })),
+  'machine-model': COURSE_ROADMAP.map((r) => ({ category: r.categoryTitle, moduleIds: r.moduleIds })),
+  'allocator-engines': COURSE_ROADMAP.map((r) => ({ category: r.categoryTitle, moduleIds: r.moduleIds })),
+  'hardware-sympathy': COURSE_ROADMAP.map((r) => ({ category: r.categoryTitle, moduleIds: r.moduleIds })),
+  'quant-capstone': COURSE_ROADMAP.map((r) => ({ category: r.categoryTitle, moduleIds: r.moduleIds })),
 };
