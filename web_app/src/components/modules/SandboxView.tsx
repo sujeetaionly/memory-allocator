@@ -295,20 +295,20 @@ export const SandboxView: React.FC = () => {
             </div>
           </div>
 
-          <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-850/60 border border-slate-200 dark:border-slate-800 text-xs sm:text-sm space-y-2.5">
-            <span className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+          <div className="p-5 rounded-2xl bg-gray-50 dark:bg-[#161922] border border-gray-200 dark:border-gray-800 text-xs sm:text-sm space-y-3">
+            <span className="font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2 text-sm">
               <span>🛠️</span>
               <span>Recommended Experiments to Try in this Sandbox:</span>
             </span>
-            <ul className="list-disc list-inside space-y-1.5 text-slate-600 dark:text-slate-300 pl-2">
+            <ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-300 pl-2 leading-relaxed">
               <li>
-                <strong>Trigger Out-of-Memory:</strong> In Arena mode, allocate three 24-byte objects into the 64-byte buffer to see how capacity overflows are prevented.
+                <strong className="text-gray-800 dark:text-gray-200">Trigger Out-of-Memory:</strong> In Arena mode, allocate three 24-byte objects into the 64-byte buffer to see how capacity overflows are prevented.
               </li>
               <li>
-                <strong>Observe Alignment Padding:</strong> In Arena mode, allocate an 8-byte aligned object with size 12, then allocate another 8-byte aligned object. Notice the 4 padding bytes inserted automatically!
+                <strong className="text-gray-800 dark:text-gray-200">Observe Alignment Padding:</strong> In Arena mode, allocate an 8-byte aligned object with size 12, then allocate another 8-byte aligned object. Notice the 4 padding bytes inserted automatically!
               </li>
               <li>
-                <strong>Test O(1) Coalescing:</strong> In Variable mode, allocate two blocks, then free them to watch the boundary tags merge them back into one large contiguous free block.
+                <strong className="text-gray-800 dark:text-gray-200">Test O(1) Coalescing:</strong> In Variable mode, allocate two blocks, then free them to watch the boundary tags merge them back into one large contiguous free block.
               </li>
             </ul>
           </div>

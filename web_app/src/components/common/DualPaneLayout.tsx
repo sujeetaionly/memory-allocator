@@ -126,15 +126,15 @@ export const DualPaneLayout: React.FC<DualPaneLayoutProps> = ({
       <div className="shrink-0 border-b border-gray-200 dark:border-gray-800 px-4 py-2.5 flex items-center justify-between gap-2 bg-gray-50/70 dark:bg-gray-900/40">
         <button
           onClick={() => handleSelectModule('index')}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer whitespace-nowrap shrink-0"
         >
-          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
-          <span>Course Overview</span>
+          <span className="whitespace-nowrap">Course Overview</span>
         </button>
 
-        <span className="text-[11px] font-mono text-gray-500 dark:text-gray-400">
+        <span className="text-[11px] font-mono text-gray-500 dark:text-gray-400 whitespace-nowrap shrink-0">
           5 Tiers · 9 Modules
         </span>
       </div>
@@ -196,7 +196,7 @@ export const DualPaneLayout: React.FC<DualPaneLayoutProps> = ({
                         className={`link-with-progress-container cursor-pointer transition ${progressClass}`}
                       >
                         <div
-                          className={`link-with-progress-link py-2 pr-4 pl-12 text-sm leading-snug flex items-center justify-between gap-1.5 ${
+                          className={`link-with-progress-link py-2 pr-4 pl-7 text-sm leading-snug flex items-center justify-between gap-1.5 ${
                             isActive
                               ? 'link-with-progress-link--active font-semibold'
                               : ''
@@ -684,74 +684,16 @@ export const DualPaneLayout: React.FC<DualPaneLayoutProps> = ({
                 </div>
               )}
 
-              {/* Unified Lesson Completion, Bookmarking & Navigation Bar */}
-              <div className="my-10 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#16191f] shadow-sm p-5 sm:p-6 space-y-5">
-                {/* Top Row: Module Progress */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-gray-100 dark:border-gray-800 pb-5">
-                  <div className="space-y-0.5">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                        Stage Progress:
-                      </span>
-                      <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${currentStatusBadge.badgeClass}`}>
-                        {currentStatus === 'complete'
-                          ? 'Completed'
-                          : currentStatus === 'reading' || currentStatus === 'practicing'
-                          ? 'In Progress'
-                          : 'Not Started'}
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Update your milestone as you read and complete the challenges.
-                    </p>
-                  </div>
-
-                  {/* Clean Status Switcher */}
-                  <div className="inline-flex rounded-xl border border-gray-200 dark:border-gray-700 p-0.5 bg-gray-50 dark:bg-gray-800 text-xs font-medium">
-                    <button
-                      onClick={() => setModuleStatus(activeStageId, 'not_started')}
-                      className={`px-3 py-1.5 rounded-lg transition cursor-pointer ${
-                        currentStatus === 'not_started'
-                          ? 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-xs font-semibold'
-                          : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
-                      }`}
-                    >
-                      ⚪ Not Started
-                    </button>
-                    <button
-                      onClick={() => setModuleStatus(activeStageId, 'reading')}
-                      className={`px-3 py-1.5 rounded-lg transition cursor-pointer ${
-                        currentStatus === 'reading' || currentStatus === 'practicing'
-                          ? 'bg-amber-500 text-white shadow-xs font-semibold'
-                          : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
-                      }`}
-                    >
-                      🟡 In Progress
-                    </button>
-                    <button
-                      onClick={() => {
-                        setModuleStatus(activeStageId, 'complete');
-                        addXp(100);
-                      }}
-                      className={`px-3 py-1.5 rounded-lg transition cursor-pointer ${
-                        currentStatus === 'complete'
-                          ? 'bg-emerald-600 text-white shadow-xs font-semibold'
-                          : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
-                      }`}
-                    >
-                      🟢 Completed (+100 XP)
-                    </button>
-                  </div>
-                </div>
-
-                {/* Bottom Row: Navigation between stages */}
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1">
+              {/* Bottom Navigation & Actions Row */}
+              <div className="mt-12 mb-16 pt-8 border-t border-gray-200 dark:border-gray-800">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-end justify-between gap-5">
+                  {/* Left: Previous Stage Button */}
                   {currentMeta.prevModule ? (
                     <button
                       onClick={() => handleSelectModule(currentMeta.prevModule!)}
-                      className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-200 shadow-xs transition cursor-pointer"
+                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#16191f] hover:bg-gray-50 dark:hover:bg-gray-800 text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-200 shadow-xs transition cursor-pointer self-start sm:self-end"
                     >
-                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                       </svg>
                       <span className="truncate">Previous: {currentMeta.prevLabel || 'Previous Module'}</span>
@@ -760,29 +702,75 @@ export const DualPaneLayout: React.FC<DualPaneLayoutProps> = ({
                     <div />
                   )}
 
-                  {currentMeta.nextModule ? (
-                    <button
-                      onClick={() => {
-                        if (currentStatus === 'not_started') {
-                          setModuleStatus(activeStageId, 'reading');
-                        }
-                        handleSelectModule(currentMeta.nextModule!);
-                      }}
-                      className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-xs sm:text-sm font-semibold text-white shadow-sm transition cursor-pointer"
-                    >
-                      <span>Proceed to Next: {currentMeta.nextLabel || 'Next Stage'}</span>
-                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => handleSelectModule('index')}
-                      className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs sm:text-sm font-semibold text-white shadow-sm transition cursor-pointer"
-                    >
-                      <span>Return to Course Syllabus ✓</span>
-                    </button>
-                  )}
+                  {/* Right: Status Milestone Buttons directly above Next Button */}
+                  <div className="flex flex-col items-stretch sm:items-end gap-2.5">
+                    {/* Buttons directly above Next */}
+                    <div className="flex flex-wrap items-center gap-2 justify-start sm:justify-end">
+                      <button
+                        onClick={() => setModuleStatus(activeStageId, 'not_started')}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition cursor-pointer whitespace-nowrap ${
+                          currentStatus === 'not_started'
+                            ? 'bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-semibold shadow-xs'
+                            : 'border-transparent text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800/60'
+                        }`}
+                        title="Reset stage progress"
+                      >
+                        ⚪ Not Started
+                      </button>
+
+                      <button
+                        onClick={() => setModuleStatus(activeStageId, 'reading')}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition cursor-pointer whitespace-nowrap ${
+                          currentStatus === 'reading' || currentStatus === 'practicing'
+                            ? 'bg-amber-500 border-amber-600 text-white font-semibold shadow-xs'
+                            : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-amber-50 hover:border-amber-300 dark:hover:bg-amber-950/30'
+                        }`}
+                        title="Mark in progress"
+                      >
+                        🟡 In Progress
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setModuleStatus(activeStageId, 'complete');
+                          addXp(100);
+                        }}
+                        className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold border transition cursor-pointer whitespace-nowrap ${
+                          currentStatus === 'complete'
+                            ? 'bg-emerald-600 border-emerald-700 text-white shadow-xs'
+                            : 'border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/40'
+                        }`}
+                        title="Mark stage complete and earn XP"
+                      >
+                        {currentStatus === 'complete' ? '✓ Completed (+100 XP)' : '🟢 Mark Complete (+100 XP)'}
+                      </button>
+                    </div>
+
+                    {/* Next Stage Button */}
+                    {currentMeta.nextModule ? (
+                      <button
+                        onClick={() => {
+                          if (currentStatus === 'not_started') {
+                            setModuleStatus(activeStageId, 'reading');
+                          }
+                          handleSelectModule(currentMeta.nextModule!);
+                        }}
+                        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-xs sm:text-sm font-semibold text-white shadow-sm transition cursor-pointer"
+                      >
+                        <span>Proceed to Next: {currentMeta.nextLabel || 'Next Stage'}</span>
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleSelectModule('index')}
+                        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs sm:text-sm font-semibold text-white shadow-sm transition cursor-pointer"
+                      >
+                        <span>Return to Course Syllabus ✓</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

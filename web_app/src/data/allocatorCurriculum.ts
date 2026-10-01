@@ -111,7 +111,7 @@ export const ALLOCATOR_MODULES: Record<string, ModuleMeta> = {
   'stage-0': {
     id: 'stage-0',
     title: 'Stage 0: The Physical Machine & The Illusion of Memory',
-    shortTitle: 'Stage 0: Physical Machine & RAM',
+    shortTitle: 'Stage 0: Physical Machine',
     tier: 'foundations',
     tierLabel: 'Foundations',
     category: 'Foundations · Physical RAM',

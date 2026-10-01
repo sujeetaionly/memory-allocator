@@ -123,41 +123,47 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     });
   }, []);
 
-  const saveProgress = (newProg: LearnerProgress) => {
-    setProgress(newProg);
-    try {
-      localStorage.setItem('allocator-guide-progress-v1', JSON.stringify(newProg));
-    } catch {
-      // ignore
-    }
-  };
-
-  const unlockStage = (stageId: string) => {
-    if (!progress.unlockedStages.includes(stageId)) {
-      saveProgress({
-        ...progress,
-        unlockedStages: [...progress.unlockedStages, stageId],
-      });
-    }
-  };
-
-  const setModuleStatus = (moduleId: string, status: ModuleProgressStatus) => {
-    saveProgress({
-      ...progress,
-      moduleStatuses: {
-        ...progress.moduleStatuses,
-        [moduleId]: status,
-      },
+  const saveProgress = (updater: LearnerProgress | ((prev: LearnerProgress) => LearnerProgress)) => {
+    setProgress((prev) => {
+      const next = typeof updater === 'function' ? updater(prev) : updater;
+      try {
+        localStorage.setItem('allocator-guide-progress-v1', JSON.stringify(next));
+      } catch {
+        // ignore
+      }
+      return next;
     });
   };
 
+  const unlockStage = (stageId: string) => {
+    saveProgress((prev) => {
+      if (prev.unlockedStages.includes(stageId)) return prev;
+      return {
+        ...prev,
+        unlockedStages: [...prev.unlockedStages, stageId],
+      };
+    });
+  };
+
+  const setModuleStatus = (moduleId: string, status: ModuleProgressStatus) => {
+    saveProgress((prev) => ({
+      ...prev,
+      moduleStatuses: {
+        ...prev.moduleStatuses,
+        [moduleId]: status,
+      },
+    }));
+  };
+
   const toggleBookmark = (stageId: string) => {
-    const current = progress.bookmarkedStages || [];
-    const exists = current.includes(stageId);
-    const updated = exists ? current.filter((id) => id !== stageId) : [...current, stageId];
-    saveProgress({
-      ...progress,
-      bookmarkedStages: updated,
+    saveProgress((prev) => {
+      const current = prev.bookmarkedStages || [];
+      const exists = current.includes(stageId);
+      const updated = exists ? current.filter((id) => id !== stageId) : [...current, stageId];
+      return {
+        ...prev,
+        bookmarkedStages: updated,
+      };
     });
   };
 
@@ -166,13 +172,15 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const toggleResource = (resourceId: string) => {
-    const exists = progress.completedResources.includes(resourceId);
-    const updated = exists
-      ? progress.completedResources.filter((r) => r !== resourceId)
-      : [...progress.completedResources, resourceId];
-    saveProgress({
-      ...progress,
-      completedResources: updated,
+    saveProgress((prev) => {
+      const exists = (prev.completedResources || []).includes(resourceId);
+      const updated = exists
+        ? prev.completedResources.filter((r) => r !== resourceId)
+        : [...(prev.completedResources || []), resourceId];
+      return {
+        ...prev,
+        completedResources: updated,
+      };
     });
   };
 
@@ -180,50 +188,55 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (progress.completedChallenges.includes(challengeId)) {
       return false;
     }
-    const currentMod = progress.currentStageId;
-    const currentStatus = progress.moduleStatuses[currentMod] || 'not_started';
-    const nextStatus =
-      currentStatus === 'not_started' || currentStatus === 'reading'
-        ? 'practicing'
-        : currentStatus;
-    saveProgress({
-      ...progress,
-      completedChallenges: [...progress.completedChallenges, challengeId],
-      moduleStatuses: {
-        ...progress.moduleStatuses,
-        [currentMod]: nextStatus,
-      },
-      xp: progress.xp + xpReward,
+    saveProgress((prev) => {
+      if (prev.completedChallenges.includes(challengeId)) return prev;
+      const currentMod = prev.currentStageId;
+      const currentStatus = prev.moduleStatuses[currentMod] || 'not_started';
+      const nextStatus =
+        currentStatus === 'not_started' || currentStatus === 'reading'
+          ? 'practicing'
+          : currentStatus;
+      return {
+        ...prev,
+        completedChallenges: [...prev.completedChallenges, challengeId],
+        moduleStatuses: {
+          ...prev.moduleStatuses,
+          [currentMod]: nextStatus,
+        },
+        xp: prev.xp + xpReward,
+      };
     });
     return true;
   };
 
   const addXp = (amount: number) => {
-    saveProgress({
-      ...progress,
-      xp: progress.xp + amount,
-    });
+    saveProgress((prev) => ({
+      ...prev,
+      xp: prev.xp + amount,
+    }));
   };
 
   const setMode = (mode: AppMode) => {
-    saveProgress({ ...progress, mode });
+    saveProgress((prev) => ({ ...prev, mode }));
   };
 
   const setCurrentStageId = (stageId: ModuleId) => {
     const meta = ALLOCATOR_MODULES[stageId];
-    const nextTier = meta ? meta.tier : progress.selectedTier;
-    saveProgress({
-      ...progress,
-      currentStageId: stageId,
-      selectedTier: nextTier,
+    saveProgress((prev) => {
+      const nextTier = meta ? meta.tier : prev.selectedTier;
+      return {
+        ...prev,
+        currentStageId: stageId,
+        selectedTier: nextTier,
+      };
     });
   };
 
   const setSelectedTier = (tier: CourseTierId) => {
-    saveProgress({
-      ...progress,
+    saveProgress((prev) => ({
+      ...prev,
       selectedTier: tier,
-    });
+    }));
   };
 
   const resetProgress = () => {
