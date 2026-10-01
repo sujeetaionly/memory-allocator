@@ -8,6 +8,7 @@ export interface LearnerProgress {
   unlockedStages: string[];
   completedChallenges: string[];
   moduleStatuses: Record<string, ModuleProgressStatus>;
+  bookmarkedStages: string[];
   completedResources: string[];
   xp: number;
   mode: AppMode;
@@ -20,6 +21,8 @@ interface LearnerContextType {
   unlockStage: (stageId: string) => void;
   completeChallenge: (challengeId: string, xpReward: number) => boolean;
   setModuleStatus: (moduleId: string, status: ModuleProgressStatus) => void;
+  toggleBookmark: (stageId: string) => void;
+  isBookmarked: (stageId: string) => boolean;
   toggleResource: (resourceId: string) => void;
   addXp: (amount: number) => void;
   setMode: (mode: AppMode) => void;
@@ -54,6 +57,7 @@ const INITIAL_PROGRESS: LearnerProgress = {
   moduleStatuses: {
     'stage-0': 'reading',
   },
+  bookmarkedStages: [],
   completedResources: [],
   xp: 0,
   mode: 'story',
@@ -80,6 +84,7 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
           ...parsed,
           unlockedStages: parsed.unlockedStages || DEFAULT_STAGES,
           moduleStatuses: parsed.moduleStatuses || { 'stage-0': 'reading' },
+          bookmarkedStages: parsed.bookmarkedStages || [],
           completedResources: parsed.completedResources || [],
           selectedTier: parsed.selectedTier || 'foundations',
         }));
@@ -144,6 +149,20 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         [moduleId]: status,
       },
     });
+  };
+
+  const toggleBookmark = (stageId: string) => {
+    const current = progress.bookmarkedStages || [];
+    const exists = current.includes(stageId);
+    const updated = exists ? current.filter((id) => id !== stageId) : [...current, stageId];
+    saveProgress({
+      ...progress,
+      bookmarkedStages: updated,
+    });
+  };
+
+  const isBookmarked = (stageId: string) => {
+    return (progress.bookmarkedStages || []).includes(stageId);
   };
 
   const toggleResource = (resourceId: string) => {
@@ -238,6 +257,8 @@ export const LearnerProvider: React.FC<{ children: React.ReactNode }> = ({ child
         unlockStage,
         completeChallenge,
         setModuleStatus,
+        toggleBookmark,
+        isBookmarked,
         toggleResource,
         addXp,
         setMode,
@@ -267,6 +288,8 @@ export const useLearner = () => {
       unlockStage: () => {},
       completeChallenge: () => false,
       setModuleStatus: () => {},
+      toggleBookmark: () => {},
+      isBookmarked: () => false,
       toggleResource: () => {},
       addXp: () => {},
       setMode: () => {},

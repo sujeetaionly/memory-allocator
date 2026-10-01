@@ -15,7 +15,7 @@ interface CourseIndexProps {
 }
 
 export const CourseIndex: React.FC<CourseIndexProps> = ({ onSelectTopic }) => {
-  const { progress, setSelectedTier } = useLearner();
+  const { progress, setSelectedTier, setModuleStatus, toggleBookmark, isBookmarked, addXp } = useLearner();
   const [filterMode, setFilterMode] = useState<'all' | CourseTierId>('all');
 
   const activeTier = COURSE_TIERS[progress.selectedTier || 'foundations'];
@@ -369,27 +369,64 @@ export const CourseIndex: React.FC<CourseIndexProps> = ({ onSelectTopic }) => {
 
               {/* Right Column / Module Nodes */}
               <div className="flex-1 md:pl-12 space-y-3">
-                {catMods.map((mod) => (
-                  <span
-                    key={mod.id}
-                    className={`link-with-progress-container link-with-progress-container--syllabus ${getProgressContainerClass(
-                      mod.id
-                    )}`}
-                  >
-                    <div
-                      onClick={() => onSelectTopic(mod.id)}
-                      className="link-with-progress-link link-with-progress-link--syllabus group py-2.5 sm:py-3 text-base sm:text-lg leading-snug cursor-pointer"
+                {catMods.map((mod) => {
+                  const modStatus = progress.moduleStatuses?.[mod.id] || 'not_started';
+                  const bookmarked = isBookmarked(mod.id);
+
+                  return (
+                    <span
+                      key={mod.id}
+                      className={`link-with-progress-container link-with-progress-container--syllabus ${getProgressContainerClass(
+                        mod.id
+                      )}`}
                     >
-                      <p className="text-gray-900 dark:text-gray-100 dark:group-hover:text-white mb-1 flex items-center transition group-hover:text-blue-600 font-semibold">
-                        <span className="mr-2 inline-flex items-end">{mod.title}</span>
-                      </p>
-                      {renderFrequencyDots(mod.frequency, mod.frequencyLabel)}
-                      <p className="text-xs sm:text-sm leading-relaxed text-gray-500 dark:text-gray-400 transition group-hover:text-blue-700">
-                        {mod.subtitle}
-                        <i className="block text-[11px] mt-0.5 text-gray-400 dark:text-gray-500">
-                          Updated: {mod.updatedAgo}
-                        </i>
-                      </p>
+                      <div
+                        onClick={() => onSelectTopic(mod.id)}
+                        className="link-with-progress-link link-with-progress-link--syllabus group py-2.5 sm:py-3 text-base sm:text-lg leading-snug cursor-pointer"
+                      >
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <p className="text-gray-900 dark:text-gray-100 dark:group-hover:text-white flex items-center transition group-hover:text-blue-600 font-semibold text-base sm:text-lg">
+                            <span className="mr-2">{mod.title}</span>
+                          </p>
+                          <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                            {/* Quick Status Pill */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const nextSt: ModuleProgressStatus =
+                                  modStatus === 'not_started'
+                                    ? 'reading'
+                                    : modStatus === 'reading' || modStatus === 'practicing'
+                                    ? 'complete'
+                                    : 'not_started';
+                                setModuleStatus(mod.id, nextSt);
+                                if (nextSt === 'complete') addXp(100);
+                              }}
+                              className={`px-2.5 py-0.5 text-[11px] font-medium rounded-full border transition cursor-pointer ${
+                                modStatus === 'complete'
+                                  ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300 font-semibold'
+                                  : modStatus === 'reading' || modStatus === 'practicing'
+                                  ? 'bg-amber-50 dark:bg-amber-950/60 border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300 font-semibold'
+                                  : 'bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-500 hover:text-gray-800 dark:text-gray-400'
+                              }`}
+                              title="Click to update status: Not Started → In Progress → Complete"
+                            >
+                              {modStatus === 'complete'
+                                ? '🟢 Complete'
+                                : modStatus === 'reading' || modStatus === 'practicing'
+                                ? '🟡 In Progress'
+                                : '⚪ Not Started'}
+                            </button>
+                          </div>
+                        </div>
+
+                        {renderFrequencyDots(mod.frequency, mod.frequencyLabel)}
+                        <p className="text-xs sm:text-sm leading-relaxed text-gray-500 dark:text-gray-400 transition group-hover:text-blue-700">
+                          {mod.subtitle}
+                          <i className="block text-[11px] mt-0.5 text-gray-400 dark:text-gray-500">
+                            Updated: {mod.updatedAgo}
+                          </i>
+                        </p>
 
                       {/* Quick Section Jump Pills */}
                       {mod.sections.length > 0 && (
@@ -411,7 +448,8 @@ export const CourseIndex: React.FC<CourseIndexProps> = ({ onSelectTopic }) => {
                       )}
                     </div>
                   </span>
-                ))}
+                );
+              })}
               </div>
             </div>
           );

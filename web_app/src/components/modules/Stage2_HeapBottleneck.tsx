@@ -17,11 +17,12 @@ const HEAP_JITTER_CODE = `#include <iostream>
 #include <chrono>
 #include <vector>
 #include <algorithm>
-#include <cstdlib>
-
-// Compiler barrier: forces CPU to treat pointer as live memory
-static void escape(void* p) {
-    asm volatile("" : : "r,m"(p) : "memory");
+// Standard touch: ensures compiler does not optimize out the allocation
+static void touch_memory(void* p) {
+    if (p) {
+        volatile char* byte_ptr = static_cast<volatile char*>(p);
+        *byte_ptr = 1;
+    }
 }
 
 int main() {
@@ -33,7 +34,7 @@ int main() {
     for (size_t i = 0; i < ITERATIONS; ++i) {
         auto t0 = std::chrono::high_resolution_clock::now();
         void* p = std::malloc(64); // Requests 64 bytes from OS heap
-        escape(p);
+        touch_memory(p);
         auto t1 = std::chrono::high_resolution_clock::now();
 
         latencies_ns.push_back(
@@ -311,13 +312,24 @@ export const Stage2_HeapBottleneck: React.FC<Stage2Props> = ({
           <section id="sec-stage2-code-demo" className="lesson-section">
             <h2>2.3 — Empirical C++ Demo: OS Heap Latency Jitter vs Custom Buffer</h2>
             <p className="prose">
-              Here is a runnable C++ comparison showing the real-world difference between naive OS heap allocations and pre-allocating an upfront continuous buffer:
+              Here is a runnable C++ comparison showing the real-world latency difference between naive OS heap allocations and an upfront buffer:
             </p>
 
+            <div className="my-4 p-4 rounded-xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/40 dark:bg-blue-950/20 text-xs space-y-1.5 text-slate-700 dark:text-slate-300">
+              <span className="font-bold text-blue-700 dark:text-blue-400 block">
+                💡 How to Approach This Code:
+              </span>
+              <p>
+                <strong>What to understand:</strong> Calling <code className="code-pill">malloc()</code> inside an inner processing loop incurs kernel transitions and lock contention that cause tail-latency spikes. Pre-allocating a contiguous buffer runs predictably in single-digit nanoseconds.
+              </p>
+              <p className="text-slate-500 dark:text-slate-400">
+                <strong>What you just run:</strong> The timing harness (<code className="code-pill">std::chrono</code>, sorting latencies, calculating P99) is just scaffolding. You do <em>not</em> need to memorize it—simply run it if you want to verify the results locally!
+              </p>
+            </div>
+
             <ProductionCodeBlock
-              title="OS Heap Jitter vs Upfront Pre-allocated Buffer"
-              badge="C++20 Empirical Study"
-              description="Benchmark the distribution of malloc/free vs pre-allocated placement new across 100,000 allocations."
+              title="Heap Jitter Benchmark"
+              description="Benchmark std::malloc jitter vs upfront buffer across 100,000 iterations."
               compileCommand="g++ -std=c++20 -O3 heap_jitter_demo.cpp -o heap_demo && ./heap_demo"
               files={[
                 {
@@ -353,21 +365,6 @@ export const Stage2_HeapBottleneck: React.FC<Stage2Props> = ({
               <br />
               • <strong>Phase 3: Variable-Size Boundary-Tag Allocator</strong> (15x faster with instant coalescing)
             </QuantNote>
-
-            <div className="mt-10 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 pt-6 border-t border-slate-200 dark:border-slate-800">
-              <button
-                onClick={onPrevStage}
-                className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-medium text-xs sm:text-sm shadow-xs transition-all flex items-center justify-center gap-1.5"
-              >
-                ◀ Back to Stage 1
-              </button>
-              <button
-                onClick={onNextStage}
-                className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs sm:text-sm shadow-sm transition-all flex items-center justify-center gap-2"
-              >
-                Proceed to Stage 3: Phase 1 Arena Allocator ▶
-              </button>
-            </div>
           </section>
         </div>
       </article>

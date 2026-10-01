@@ -380,8 +380,29 @@ export const VirtualMachineProvider: React.FC<{ children: React.ReactNode }> = (
     setSelectedAddress(addr);
     if (addr !== null) {
       const line = Math.floor(addr / 64);
-      if (line === 0) setCacheHits((h) => h + 1);
-      else setCacheMisses((m) => m + 1);
+      const hexAddr = '0x' + addr.toString(16).padStart(2, '0').toUpperCase();
+      const cell = cells[addr];
+      const valHex = cell?.valueHex ?? '00';
+      const valDec = cell?.value ?? 0;
+      const state = cell?.state ?? 'empty';
+      const tag = cell?.tag ? ` [${cell.tag}]` : '';
+
+      setCyclesSpent((c) => c + 1);
+      if (line === 0) {
+        setCacheHits((h) => h + 1);
+        addLog(
+          `[BUS READ] CPU probed ${hexAddr} (dec ${addr}) -> Value: 0x${valHex} (${valDec}d, ${state})${tag} • L1 Cache Hit (Line #${line})`,
+          'info'
+        );
+      } else {
+        setCacheMisses((m) => m + 1);
+        addLog(
+          `[BUS READ] CPU probed ${hexAddr} (dec ${addr}) -> L1 Cache Miss! Probed DRAM line #${line}`,
+          'warn'
+        );
+      }
+    } else {
+      addLog('[BUS PROBE] Probed address cleared. Hardware bus idle.', 'info');
     }
   };
 

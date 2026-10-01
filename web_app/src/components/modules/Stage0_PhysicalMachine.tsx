@@ -165,18 +165,6 @@ export const Stage0_PhysicalMachine: React.FC<Stage0Props> = ({ onNextStage }) =
               <strong>Memory access is the bottleneck of modern civilization.</strong>{' '}
               If your algorithm places data randomly in RAM, your program stalls. If you organize memory with mechanical sympathy, your code runs 100x faster!
             </QuantNote>
-
-            <div className="mt-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-6 border-t border-slate-200 dark:border-slate-800">
-              <span className="text-xs text-slate-500 font-mono font-medium">
-                Stage 0 Complete: Foundations Established
-              </span>
-              <button
-                onClick={onNextStage}
-                className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs sm:text-sm shadow-sm transition-all flex items-center gap-2"
-              >
-                Proceed to Stage 1: The C++ Machine Model ▶
-              </button>
-            </div>
           </section>
         </div>
       </article>

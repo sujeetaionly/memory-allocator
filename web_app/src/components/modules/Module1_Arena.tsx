@@ -25,8 +25,8 @@ export const Module1_Arena: React.FC<Module1Props> = ({
   const arenaSteps: CodeStep[] = [
     {
       lineNumber: 1,
-      code: 'alignas(alignof(std::max_align_t)) std::byte buffer[64];',
-      explanation: 'Reserve a 64-byte block of raw untyped memory aligned to the hardware architecture word boundary.',
+      code: 'std::byte buffer[64]; // Contiguous 64-byte memory pool',
+      explanation: 'Reserve a 64-byte block of raw untyped memory. No OS heap calls during execution!',
       hardwareEffect: 'Stack/Heap reservation of 64 contiguous bytes at address 0x00.',
       action: () => {
         resetArena();
@@ -34,9 +34,9 @@ export const Module1_Arena: React.FC<Module1Props> = ({
     },
     {
       lineNumber: 2,
-      code: 'size_t offset = 0; // The Bump Pointer',
-      explanation: 'Initialize the cursor offset to 0. Allocation will simply advance this integer.',
-      hardwareEffect: 'CPU register RBX loaded with 0x00.',
+      code: 'size_t offset = 0; // The Bump Pointer cursor',
+      explanation: 'Initialize the cursor to index 0. Allocating memory simply means bumping this integer.',
+      hardwareEffect: 'CPU register loaded with 0x00. Memory is completely empty.',
       action: () => {
         resetArena();
       },
@@ -44,26 +44,44 @@ export const Module1_Arena: React.FC<Module1Props> = ({
     {
       lineNumber: 3,
       code: 'Order* o1 = new (buffer + offset) Order(101); // 24 bytes',
-      explanation: 'Placement new constructs an Order directly in the raw memory without calling OS malloc!',
-      hardwareEffect: 'Order object bytes written to 0x00..0x17. Bump cursor moves from 0x00 to 0x18 (24B) in 1 CPU cycle.',
+      explanation: 'Placement new constructs Order #101 directly inside buffer starting at byte 0.',
+      hardwareEffect: 'Order object bytes written to 0x00..0x17.',
       action: () => {
         bumpAllocate(24, 8, 'Order #101');
       },
     },
     {
       lineNumber: 4,
+      code: 'offset += sizeof(Order); // Advance cursor: offset is now 24 (0x18)',
+      explanation: 'Bump the offset by 24 bytes so the next object does NOT overwrite Order #101!',
+      hardwareEffect: 'Bump cursor advances from 0x00 to 0x18 (24B) in 1 CPU clock cycle.',
+      action: () => {
+        // Keeps state aligned with 24B allocated
+      },
+    },
+    {
+      lineNumber: 5,
       code: 'Order* o2 = new (buffer + offset) Order(102); // 24 bytes',
-      explanation: 'Next object is placed immediately following the first. Maximum cache locality!',
-      hardwareEffect: 'Order object bytes written to 0x18..0x2F. Bump cursor moves to 0x30 (48B).',
+      explanation: 'Placement new constructs Order #102 in the next available slot starting at byte 24.',
+      hardwareEffect: 'Order object bytes written to 0x18..0x2F. Contiguous in CPU cache!',
       action: () => {
         bumpAllocate(24, 8, 'Order #102');
       },
     },
     {
-      lineNumber: 5,
-      code: 'offset = 0; // Bulk Reset All Memory in 1 CPU cycle!',
-      explanation: 'Deallocation is instant! Rather than freeing individual nodes, simply set offset back to 0.',
-      hardwareEffect: 'CPU executes MOV RBX, 0. All 64 bytes reclaimed simultaneously in 1 clock cycle.',
+      lineNumber: 6,
+      code: 'offset += sizeof(Order); // Advance cursor: offset is now 48 (0x30)',
+      explanation: 'Bump cursor forward again. 48 bytes are now in use, with 16 bytes remaining.',
+      hardwareEffect: 'Bump cursor advances to 0x30 (48B).',
+      action: () => {
+        // Keeps state aligned
+      },
+    },
+    {
+      lineNumber: 7,
+      code: 'offset = 0; // Bulk Reset: All memory reclaimed in 1 CPU cycle!',
+      explanation: 'Instant deallocation! Rather than freeing objects one by one, simply reset the offset to 0.',
+      hardwareEffect: 'All 64 bytes reclaimed simultaneously. Available for immediate reuse.',
       action: () => {
         resetArena();
       },
@@ -355,23 +373,6 @@ int main() {
                 },
               ]}
             />
-
-            <div className="mt-10 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 pt-6 border-t border-slate-200 dark:border-slate-800">
-              {onPrevModule && (
-                <button
-                  onClick={onPrevModule}
-                  className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-medium text-xs sm:text-sm shadow-xs transition-all flex items-center justify-center gap-1.5"
-                >
-                  ◀ Back to Stage 2
-                </button>
-              )}
-              <button
-                onClick={onNextModule}
-                className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs sm:text-sm shadow-sm transition-all flex items-center justify-center gap-2"
-              >
-                Proceed to Stage 4: Phase 2 Free-List Allocator ▶
-              </button>
-            </div>
           </section>
         </div>
       </article>

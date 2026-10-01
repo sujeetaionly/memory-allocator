@@ -236,17 +236,46 @@ export const Stage1_CppMachineModel: React.FC<Stage1Props> = ({
               In basic C++, when you write <code className="code-pill">ptr + 1</code>, the compiler does <strong>not</strong> add 1 byte! It scales by the size of the underlying type:
             </p>
 
-            <div className="my-4 p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/40 font-mono text-xs space-y-2">
-              <div className="text-slate-500 font-semibold">// Pointer arithmetic scaling formula:</div>
-              <div className="text-blue-600 dark:text-blue-400 font-bold">
+            <div className="my-5 p-4 sm:p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/50 space-y-3">
+              <div className="font-mono text-xs text-slate-500 dark:text-slate-400 font-semibold">
+                // Pointer arithmetic scaling formula:
+              </div>
+              <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-900/60 font-mono text-xs sm:text-sm font-bold text-blue-700 dark:text-blue-300">
                 new_address = base_address + (N * sizeof(*ptr));
               </div>
-              <div className="pt-2 text-slate-700 dark:text-slate-300">
-                • <code className="code-pill">int* p = 0x1000; p + 1;</code> &rarr; advances by 4 bytes to <code className="code-pill font-bold">0x1004</code>
-                <br />
-                • <code className="code-pill">double* p = 0x1000; p + 1;</code> &rarr; advances by 8 bytes to <code className="code-pill font-bold">0x1008</code>
-                <br />
-                • <code className="code-pill">std::byte* p = 0x1000; p + 1;</code> &rarr; advances by exactly 1 byte to <code className="code-pill font-bold">0x1001</code>
+              <div className="space-y-2.5 pt-1">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-lg bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-xs gap-2 font-mono shadow-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
+                    <span className="text-slate-800 dark:text-slate-200 font-bold">int* p = 0x1000; p + 1;</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                    <span>advances by 4 bytes &rarr;</span>
+                    <span className="px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 font-bold">0x1004</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-lg bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-xs gap-2 font-mono shadow-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-purple-500 shrink-0" />
+                    <span className="text-slate-800 dark:text-slate-200 font-bold">double* p = 0x1000; p + 1;</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                    <span>advances by 8 bytes &rarr;</span>
+                    <span className="px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300 font-bold">0x1008</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-lg bg-emerald-50/40 dark:bg-emerald-950/20 border border-emerald-300 dark:border-emerald-800/80 text-xs gap-2 font-mono shadow-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                    <span className="text-emerald-700 dark:text-emerald-300 font-bold">std::byte* p = 0x1000; p + 1;</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-200">
+                    <span>advances by exactly 1 byte &rarr;</span>
+                    <span className="px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 font-bold">0x1001</span>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -313,21 +342,6 @@ export const Stage1_CppMachineModel: React.FC<Stage1Props> = ({
             </AnalogyCard>
 
             <MicroChallengeEngine challenge={challenge4} />
-
-            <div className="mt-10 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 pt-6 border-t border-slate-200 dark:border-slate-800">
-              <button
-                onClick={onPrevStage}
-                className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-medium text-xs sm:text-sm shadow-xs transition-all flex items-center justify-center gap-1.5"
-              >
-                ◀ Back to Stage 0
-              </button>
-              <button
-                onClick={onNextStage}
-                className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs sm:text-sm shadow-sm transition-all flex items-center justify-center gap-2"
-              >
-                Proceed to Stage 2: The Dynamic Heap Problem ▶
-              </button>
-            </div>
           </section>
         </div>
       </article>

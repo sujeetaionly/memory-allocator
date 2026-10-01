@@ -239,23 +239,6 @@ int main() {
                 },
               ]}
             />
-
-            <div className="mt-10 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 pt-6 border-t border-slate-200 dark:border-slate-800">
-              {onPrevModule && (
-                <button
-                  onClick={onPrevModule}
-                  className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-medium text-xs sm:text-sm shadow-xs transition-all flex items-center justify-center gap-1.5"
-                >
-                  ◀ Back to Stage 5
-                </button>
-              )}
-              <button
-                onClick={onNextModule}
-                className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs sm:text-sm shadow-sm transition-all flex items-center justify-center gap-2"
-              >
-                Proceed to Stage 7: Systems &amp; Quant Capstone ▶
-              </button>
-            </div>
           </section>
         </div>
       </article>

@@ -67,18 +67,20 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="w-full shrink-0">
-      {/* Top Announcement Banner - Sleek, authentic, mobile-responsive */}
+      {/* Top Announcement Banner */}
       <div className="bg-[#111827] text-white border-b border-gray-800/80 px-3 py-2 sm:py-2.5 text-center">
-        <div className="mx-auto max-w-7xl flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-xs sm:text-sm">
+        <div className="mx-auto max-w-7xl flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs sm:text-sm">
           <span className="text-gray-300">
-            Interactive 64-Byte RAM Simulator &amp; C++20 Allocator Lab is live.
+            Interactive 64-Byte RAM Simulator &amp; Production C++20 Allocator Suite
           </span>
-          <button
-            onClick={() => setActiveModule('sandbox')}
-            className="inline-flex items-center gap-1 rounded-full bg-white/10 hover:bg-white/20 px-3 py-0.5 text-xs font-semibold text-white transition cursor-pointer"
+          <a
+            href="https://github.com/sujeetaionly/memory-allocator"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1 rounded-full bg-white/10 hover:bg-white/20 px-2.5 py-0.5 text-xs font-semibold text-blue-300 hover:text-white transition cursor-pointer"
           >
-            Launch RAM Studio <span aria-hidden="true">→</span>
-          </button>
+            GitHub Repo ↗
+          </a>
         </div>
       </div>
 
@@ -99,7 +101,7 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
             </div>
 
-            {/* Center: Desktop Navigation Links (Never wrap, hidden on tablet/mobile) */}
+            {/* Center: Desktop Navigation Links */}
             <div className="hidden lg:flex items-center space-x-1 xl:space-x-2">
               {/* Curriculum Tier Dropdown */}
               <div
@@ -144,13 +146,6 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
 
               <button
-                onClick={() => setActiveModule('stage-0')}
-                className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition whitespace-nowrap cursor-pointer"
-              >
-                Using This Guide
-              </button>
-
-              <button
                 onClick={() => setActiveModule('sandbox')}
                 className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition whitespace-nowrap cursor-pointer"
               >
@@ -173,57 +168,77 @@ export const Header: React.FC<HeaderProps> = ({
                   </svg>
                 </button>
                 {resDropdownOpen && (
-                  <div className="absolute left-0 top-full z-50 w-64 rounded-lg bg-white py-2 shadow-xl ring-1 ring-black/5 dark:bg-[#1a1d24] dark:ring-gray-700">
-                    <button
-                      onClick={() => {
-                        onOpenGlossary();
-                        setResDropdownOpen(false);
-                      }}
-                      className="block w-full px-4 py-2 text-left text-xs sm:text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800 cursor-pointer"
+                  <div className="absolute left-0 top-full z-50 w-72 rounded-lg bg-white py-2 shadow-xl ring-1 ring-black/5 dark:bg-[#1a1d24] dark:ring-gray-700">
+                    <a
+                      href="https://github.com/sujeetaionly/memory-allocator"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center justify-between px-4 py-2.5 text-xs sm:text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800 cursor-pointer"
                     >
-                      📖 Systems Concept Dictionary
-                    </button>
+                      <span className="flex items-center gap-2">
+                        <span>📦</span>
+                        <span className="font-medium">GitHub Repository</span>
+                      </span>
+                      <span className="text-xs text-gray-400">↗</span>
+                    </a>
+                    <a
+                      href="https://en.cppreference.com/w/cpp/types/byte"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center justify-between px-4 py-2.5 text-xs sm:text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800 cursor-pointer"
+                    >
+                      <span className="flex items-center gap-2">
+                        <span>📘</span>
+                        <span className="font-medium">ISO C++ std::byte Spec</span>
+                      </span>
+                      <span className="text-xs text-gray-400">↗</span>
+                    </a>
                     <button
                       onClick={() => {
                         setActiveModule('stage-6');
                         setResDropdownOpen(false);
                       }}
-                      className="block w-full px-4 py-2 text-left text-xs sm:text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800 cursor-pointer"
+                      className="w-full flex items-center justify-between px-4 py-2.5 text-xs sm:text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800 cursor-pointer text-left"
                     >
-                      ⚡ Bitwise Alignment Calculator
+                      <span className="flex items-center gap-2">
+                        <span>⚡</span>
+                        <span className="font-medium">Bitwise Alignment Lab</span>
+                      </span>
+                      <span className="text-[10px] font-mono text-blue-500">Stage 6</span>
                     </button>
                     <button
                       onClick={() => {
                         setActiveModule('stage-7');
                         setResDropdownOpen(false);
                       }}
-                      className="block w-full px-4 py-2 text-left text-xs sm:text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800 cursor-pointer"
+                      className="w-full flex items-center justify-between px-4 py-2.5 text-xs sm:text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800 cursor-pointer text-left"
                     >
-                      📊 1M Ops Benchmarks &amp; War Room
+                      <span className="flex items-center gap-2">
+                        <span>📊</span>
+                        <span className="font-medium">1M Ops Latency War Room</span>
+                      </span>
+                      <span className="text-[10px] font-mono text-purple-500">Stage 7</span>
                     </button>
                   </div>
                 )}
               </div>
-
-              <button
-                onClick={onOpenGlossary}
-                className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition whitespace-nowrap cursor-pointer"
-              >
-                Glossary
-              </button>
             </div>
 
-            {/* Right: Search, XP Counter, Theme Toggle, Mobile Hamburger */}
+            {/* Right: Unified Search & Glossary, XP Counter, Theme Toggle */}
             <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               <button
                 type="button"
                 onClick={onOpenGlossary}
-                className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs sm:text-sm text-gray-500 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition cursor-pointer"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm font-medium text-gray-700 hover:text-gray-900 dark:text-gray-200 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition cursor-pointer shadow-xs"
+                title="Search concepts and open Systems Dictionary"
               >
-                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="h-4 w-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
                 </svg>
-                <span className="hidden sm:inline">Search</span>
+                <span className="hidden sm:inline">Search &amp; Glossary</span>
+                <kbd className="hidden md:inline-block text-[10px] font-mono px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 ml-1">
+                  ⌘K
+                </kbd>
               </button>
 
               <span className="hidden md:inline-flex items-center text-xs font-semibold text-gray-600 dark:text-gray-300 px-2 py-1 rounded bg-gray-100 dark:bg-gray-800">
